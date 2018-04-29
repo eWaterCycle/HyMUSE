@@ -8,7 +8,7 @@ from amuse.rfi.core import  PythonCodeInterface,legacy_function, \
 
 udunit_to_amuse=dict(none=units.none, s=units.s, K=units.K)
 
-class BMIImplementation(_BMI):
+class BMIImplementation(object):
     def __init__(self):
         self._BMI=_BMI()
 

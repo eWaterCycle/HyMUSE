@@ -1,6 +1,6 @@
-from interface import BMIInterface, BMI
+from interface import HeatInterface, Heat
 
-h=BMIInterface(redirection="none")
+h=HeatInterface(redirection="none")
 
 h.initialize("")
 
@@ -29,6 +29,6 @@ h.finalize()
 
 h.stop()
 
-h=BMI()
+h=Heat()
 
 print dir(h)

@@ -1,11 +1,25 @@
 from amuse.units import units
 
+from amuse.datamodel import CartesianGrid
+
 from amuse.support.interface import InCodeComponentImplementation
 from amuse.rfi.core import  PythonCodeInterface, CodeInterface, legacy_function, \
                             LegacyFunctionSpecification, remote_function
 
 # from hymuse.units.udunits import udunit_to_amuse ?
 udunit_to_amuse=dict(none=units.none, s=units.s, K=units.K)
+
+# dict to get AMUSE grid class
+grid_class=dict(uniform_rectilinear_grid=CartesianGrid)
+
+# not necessary for numpy >= 1.6
+def ravel_index(pos, shape):
+    res = 0
+    acc = 1
+    for pi, si in zip(reversed(pos), reversed(shape)):
+        res += pi * acc
+        acc *= si
+    return res
 
 class BMIImplementation(object):
     def __init__(self):
@@ -21,7 +35,7 @@ class BMIImplementation(object):
         return 0
 
     def update_until(self,time):
-        self._BMI.update(time)
+        self._BMI.update_until(time)
         return 0
         
     def update_frac(self,time_frac=0.):
@@ -205,6 +219,7 @@ class BMIInterface(CodeInterface):
     def get_end_time(self):
         returns (end_time=0.)
 
+    @remote_function
     def get_time_step(self):
         returns (time_step=0.)
 
@@ -309,26 +324,36 @@ class BMI(InCodeComponentImplementation):
 
         self._input_var_count=self.get_input_var_name_count()
         self._output_var_count=self.get_output_var_name_count()
-        self._input_var_names=[]
-        self._output_var_names=[]
+        self._input_var_names=set()
+        self._output_var_names=set()
         self._input_var_units=dict()
         self._output_var_units=dict()
         for i in range(self._input_var_count):
             name=self.get_input_var_name(i)
             unit=udunit_to_amuse[self.get_var_units(name)]
-            self._input_var_names.append(name)
+            self._input_var_names.add(name)
             self._input_var_units[name]=unit
         for i in range(self._output_var_count):
             name=self.get_output_var_name(i)
             unit=udunit_to_amuse[self.get_var_units(name)]
-            self._output_var_names.append(name)
+            self._output_var_names.add(name)
             self._output_var_units[name]=unit
+        self._var_names=self._input_var_names.union(self._output_var_names)
+
+        self._grids=set()
+        for var in self._var_names:
+            self._grids.add(self.get_var_grid(var))
+        self._grid_types=dict()
+        for grid in self._grids:
+            self._grid_types[grid]=self.get_grid_type(grid)
 
         self._time_unit=udunit_to_amuse[self.get_time_units()]
 
         handler=self.get_handler("METHOD")
         self.define_additional_methods(handler)
-        
+        handler=self.get_handler("DATASETS")
+        self.define_additional_grids(handler)
+
     def cleanup_code(self):
         self.finalize()
         
@@ -342,15 +367,20 @@ class BMI(InCodeComponentImplementation):
         object.add_transition('END', 'STOPPED', 'stop', False)
         object.add_method('STOPPED', 'stop')
 
+        object.add_method('INITIALIZED', 'get_current_time')
+        object.add_method('INITIALIZED', 'get_time_step')
         object.add_method('INITIALIZED', 'evolve_model')
         object.add_method('INITIALIZED', 'finalize')
 
     def define_methods(self, object):
         pass
 
+    def define_grids(self,object):
+        pass
+    
     def define_additional_methods(self,object):
         object.add_method(
-            'get_time',
+            'get_current_time',
             (),
             (self._time_unit,object.ERROR_CODE)
         )
@@ -359,4 +389,85 @@ class BMI(InCodeComponentImplementation):
             (),
             (self._time_unit,object.ERROR_CODE)
         )        
+        object.add_method(
+            'evolve_model',
+            (self._time_unit,),
+            (object.ERROR_CODE,)
+        )
 
+
+        for var in self._output_var_names:
+            getter='get_'+var+'_flat'
+            
+            def f(self,index):
+              unit=self._output_var_units[var]
+              return self.get_value_at_indices_float(var,index) | unit
+            
+            setattr( self, getter, f.__get__(self) )
+            
+
+        for var in self._input_var_names:
+            setter='set_'+var+'_flat'
+            
+            def f(self,index,val):
+              unit=self._input_var_units[var]
+              val=val.value_in(unit)
+# todo: select data type              
+              return self.set_value_at_indices_float(var,index,val)
+            
+            setattr( self, setter, f.__get__(self) )
+            
+    def define_additional_grids(self,object):
+        for grid in self._grids:
+            name="grid_"+str(grid)
+            if self._grid_types[grid]=="uniform_rectilinear_grid":
+              shape=self.get_grid_shape(grid, range(self.get_grid_rank()) )
+              self.define_additional_cartesian_grid(object,name, shape)
+            else:
+              raise Exception("not implemented yet")
+
+            for var in self._input_var_names:
+                if self.get_var_grid(var)==grid:
+                    setter='set_'+var
+                    flat_setter='set_'+var+'_flat'
+                    
+                    def f(self, *index_and_value):
+                        flat_index=ravel_index(index[:-1],shape)
+                        value=index_and_value[-1]
+                        return getattr(self, flat_setter)(flat_index,value)
+                    
+                    setattr( self, setter, f.__get__(self) )
+
+                    object.add_setter(name, setter, names=[var])
+
+
+            for var in self._output_var_names:
+                if self.get_var_grid(var)==grid:
+                    getter='get_'+var
+                    flat_getter='get_'+var+'_flat'
+                    
+                    def f(self, *index):
+                        flat_index=ravel_index(index,shape)
+                        return getattr(self, flat_getter)(flat_index)
+                    
+                    setattr( self, getter, f.__get__(self) )
+
+                    object.add_getter(name, getter, names=[var])
+
+    def define_additional_cartesian_grid(self, object, name, shape):
+        
+        def func(self):
+          r=()
+          for s in shape:
+              r+=(0,s-1)
+          return r
+          
+        grid_range_getter='get_'+name+'_range'
+        setattr( self, grid_range_getter, func.__get__(self) )
+        object.define_grid(name,axes_names="xyz", grid_class=CartesianGrid)
+        object.set_grid_range(name,grid_range_getter)
+
+    def define_properties(self, object):
+        object.add_property('get_current_time', public_name = "model_time")
+        object.add_property('get_time_step', public_name = "time_step")
+    

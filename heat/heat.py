@@ -53,13 +53,13 @@ def solve_2d(temp, spacing, out=None, alpha=1., time_step=1.):
            [ 0. ,  0. ,  0. ]])
     """
     dy, dx = spacing[0], spacing[1] 
-    if out is None:
-        out = np.empty_like(temp)
-    out=laplace(temp,dx,dy)*alpha*time_step
-    out[(0, -1), :] = 0.
-    out[:, (0, -1)] = 0.
-    out=np.add(temp, out)
-    return out
+    dt=laplace(temp,dx,dy)*alpha*time_step
+    dt[(0, -1), :] = 0.
+    dt[:, (0, -1)] = 0.
+    dt=temp+dt
+    if out is not None:
+      out[:]=dt[:]
+    return dt
 
 class Heat(object):
 
@@ -112,7 +112,7 @@ class Heat(object):
         self._time_step = min(spacing) ** 2 / (4. * self._alpha)
 
         self._temperature = random.random(self._shape)
-        self._next_temperature = np.empty_like(self._temperature)
+        self._next_temperature = np.zeros_like(self._temperature)
 
     @property
     def time(self):
@@ -176,6 +176,6 @@ class Heat(object):
         """Calculate new temperatures for the next time step."""
         solve_2d(self._temperature, self._spacing, out=self._next_temperature,
                  alpha=self._alpha, time_step=self._time_step)
-        np.copyto(self._temperature, self._next_temperature)
+        self._temperature[:]=self._next_temperature[:]
 
         self._time += self._time_step

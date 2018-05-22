@@ -1,3 +1,5 @@
+import os.path
+
 from amuse.units import units
 
 from amuse.datamodel import CartesianGrid
@@ -7,7 +9,7 @@ from amuse.rfi.core import  PythonCodeInterface, CodeInterface, legacy_function,
                             LegacyFunctionSpecification, remote_function
 
 # from hymuse.units.udunits import udunit_to_amuse ?
-udunit_to_amuse=dict(none=units.none, s=units.s, K=units.K)
+udunit_to_amuse={ "none":units.none, "s":units.s, "K":units.K, "-":units.none}
 
 # dict to get AMUSE grid class
 grid_class=dict(uniform_rectilinear_grid=CartesianGrid)
@@ -20,6 +22,20 @@ def ravel_index(pos, shape):
         res += pi * acc
         acc *= si
     return res
+
+def generate_c_interface_file(include_file, register_function_name):
+    srcdir=os.path.dirname(os.path.abspath(__file__))
+    
+    f=open(os.path.join(srcdir,"interface_bmi_template.c"),"r")
+    filestring=f.read()
+    f.close()
+    
+    filestring=filestring.replace("CODE_BMI_HEADER", include_file)
+    filestring=filestring.replace("REGISTER_FUNCTION", register_function_name)
+    
+    f=open("interface.c","w")
+    f.write(filestring)
+    f.close()
 
 class BMIImplementation(object):
     def __init__(self):
@@ -164,7 +180,7 @@ class BMIImplementation(object):
 # below can mostly also be used for other languages
 
 class BMIInterface(CodeInterface):
-
+    include_headers = ['worker_code.h']
 # base BMI functions
 
     @remote_function
@@ -295,19 +311,16 @@ class BMIInterface(CodeInterface):
 # BMI rectilinear grid
 
     @remote_function(can_handle_array=True)
-    def get_grid_x(self, grid_id, i=0):
+    def get_grid_x(self, grid_id=0, i=0):
         returns(x=0.)
     @remote_function(can_handle_array=True)
-    def get_grid_y(self, grid_id, j=0):
+    def get_grid_y(self, grid_id=0, j=0):
         returns(y=0.)
     @remote_function(can_handle_array=True)
-    def get_grid_z(self, grid_id, k=0):
+    def get_grid_z(self, grid_id=0, k=0):
         returns(z=0.)
 
 # TODO: structured quad and unstructured
-
-
-    evolve_model=update_until
 
 class BMIPythonInterface(PythonCodeInterface, BMIInterface):
     pass
@@ -390,11 +403,12 @@ class BMI(InCodeComponentImplementation):
             (self._time_unit,object.ERROR_CODE)
         )        
         object.add_method(
-            'evolve_model',
+            'update_until',
             (self._time_unit,),
             (object.ERROR_CODE,)
         )
 
+        self.evolve_model=self.update_until
 
         for var in self._output_var_names:
             getter='get_'+var+'_flat'
@@ -420,10 +434,11 @@ class BMI(InCodeComponentImplementation):
     def define_additional_grids(self,object):
         for grid in self._grids:
             name="grid_"+str(grid)
-            if self._grid_types[grid]=="uniform_rectilinear_grid":
+            if self._grid_types[grid] in ["uniform_rectilinear_grid", "uniform_rectilinear"]:
               shape=self.get_grid_shape(grid, range(self.get_grid_rank()) )
               self.define_additional_cartesian_grid(object,name, shape)
             else:
+              print self._grid_types[grid]
               raise Exception("not implemented yet")
 
             for var in self._input_var_names:

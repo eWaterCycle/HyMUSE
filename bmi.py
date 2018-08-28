@@ -9,7 +9,8 @@ from amuse.rfi.core import  PythonCodeInterface, CodeInterface, legacy_function,
                             LegacyFunctionSpecification, remote_function
 
 # from hymuse.units.udunits import udunit_to_amuse ?
-udunit_to_amuse={ "none":units.none, "s":units.s, "K":units.K, "-":units.none}
+# in practice it turns out that this converter dict needs tailoring to codes -> override in interface.py
+udunit_to_amuse={}
 
 # dict to get AMUSE grid class
 grid_class=dict(uniform_rectilinear_grid=CartesianGrid)
@@ -320,6 +321,10 @@ class BMIInterface(CodeInterface):
     def get_grid_z(self, grid_id=0, k=0):
         returns(z=0.)
 
+    def cleanup_code(self):
+        self.finalize()
+
+
 # TODO: structured quad and unstructured
 
 class BMIPythonInterface(PythonCodeInterface, BMIInterface):
@@ -329,11 +334,13 @@ class BMIPythonInterface(PythonCodeInterface, BMIInterface):
 
 class BMI(InCodeComponentImplementation):
 
+    ini_file=None
+
     #~ def __init__(self, **options):
         #~ InCodeComponentImplementation.__init__(self,BMIInterface(**options))
   
     def initialize_code(self):
-        self.initialize("")
+        self.initialize(self.ini_file)
 
         self._input_var_count=self.get_input_var_name_count()
         self._output_var_count=self.get_output_var_name_count()
@@ -356,6 +363,7 @@ class BMI(InCodeComponentImplementation):
         self._grids=set()
         for var in self._var_names:
             self._grids.add(self.get_var_grid(var))
+
         self._grid_types=dict()
         for grid in self._grids:
             self._grid_types[grid]=self.get_grid_type(grid)
@@ -366,13 +374,10 @@ class BMI(InCodeComponentImplementation):
         self.define_additional_methods(handler)
         handler=self.get_handler("DATASETS")
         self.define_additional_grids(handler)
-
-    def cleanup_code(self):
-        self.finalize()
         
     def define_state(self, object):
         object.set_initial_state('UNINITIALIZED')
-        object.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize_code')
+        object.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize')
         object.add_method('INITIALIZED', 'before_get_parameter')
         object.add_method('INITIALIZED', 'before_set_parameter')
         object.add_method('END', 'before_get_parameter')
@@ -380,10 +385,11 @@ class BMI(InCodeComponentImplementation):
         object.add_transition('END', 'STOPPED', 'stop', False)
         object.add_method('STOPPED', 'stop')
 
-        object.add_method('INITIALIZED', 'get_current_time')
-        object.add_method('INITIALIZED', 'get_time_step')
-        object.add_method('INITIALIZED', 'evolve_model')
-        object.add_method('INITIALIZED', 'finalize')
+        object.add_method('!UNINITIALIZED', 'get_current_time')
+        object.add_method('!UNINITIALIZED', 'get_time_step')
+        object.add_method('!UNINITIALIZED', 'evolve_model')
+        object.add_method('!UNINITIALIZED', 'finalize')
+        object.add_method('!UNINITIALIZED', 'data_store_names')
 
     def define_methods(self, object):
         pass
@@ -410,26 +416,25 @@ class BMI(InCodeComponentImplementation):
 
         self.evolve_model=self.update_until
 
-        for var in self._output_var_names:
-            getter='get_'+var+'_flat'
-            
+        def getter_fac(var):
             def f(self,index):
-              unit=self._output_var_units[var]
-              return self.get_value_at_indices_float(var,index) | unit
-            
-            setattr( self, getter, f.__get__(self) )
-            
+                unit=self._output_var_units[var]
+                return self.get_value_at_indices_float(var,index) | unit
+            return f
 
-        for var in self._input_var_names:
-            setter='set_'+var+'_flat'
+        for var in self._output_var_names:
+            setattr( self, 'get_'+var+'_flat' , getter_fac(var).__get__(self) )
             
+        def setter_fac(var):
             def f(self,index,val):
               unit=self._input_var_units[var]
               val=val.value_in(unit)
 # todo: select data type              
               return self.set_value_at_indices_float(var,index,val)
-            
-            setattr( self, setter, f.__get__(self) )
+            return f
+
+        for var in self._input_var_names:
+            setattr( self, 'set_'+var+'_flat', setter_fac(var).__get__(self) )
             
     def define_additional_grids(self,object):
         for grid in self._grids:
@@ -441,32 +446,32 @@ class BMI(InCodeComponentImplementation):
               print self._grid_types[grid]
               raise Exception("not implemented yet")
 
+            def setter_fac(flat_setter):                   
+                def f(self, *index_and_value):
+                    flat_index=ravel_index(index[:-1],shape)
+                    value=index_and_value[-1]
+                    return getattr(self, flat_setter)(flat_index,value)
+                return f
+
             for var in self._input_var_names:
                 if self.get_var_grid(var)==grid:
                     setter='set_'+var
                     flat_setter='set_'+var+'_flat'
-                    
-                    def f(self, *index_and_value):
-                        flat_index=ravel_index(index[:-1],shape)
-                        value=index_and_value[-1]
-                        return getattr(self, flat_setter)(flat_index,value)
-                    
-                    setattr( self, setter, f.__get__(self) )
-
+                    setattr( self, setter, setter_fac(flat_setter).__get__(self) )
                     object.add_setter(name, setter, names=[var])
 
-
+            def getter_fac(flat_getter):
+                def f(self, *index):
+                    print flat_getter
+                    flat_index=ravel_index(index,shape)
+                    return getattr(self, flat_getter)(flat_index)
+                return f
+                    
             for var in self._output_var_names:
                 if self.get_var_grid(var)==grid:
                     getter='get_'+var
                     flat_getter='get_'+var+'_flat'
-                    
-                    def f(self, *index):
-                        flat_index=ravel_index(index,shape)
-                        return getattr(self, flat_getter)(flat_index)
-                    
-                    setattr( self, getter, f.__get__(self) )
-
+                    setattr( self, getter, getter_fac(flat_getter).__get__(self) )
                     object.add_getter(name, getter, names=[var])
 
     def define_additional_cartesian_grid(self, object, name, shape):
@@ -476,7 +481,7 @@ class BMI(InCodeComponentImplementation):
           for s in shape:
               r+=(0,s-1)
           return r
-          
+                  
         grid_range_getter='get_'+name+'_range'
         setattr( self, grid_range_getter, func.__get__(self) )
         object.define_grid(name,axes_names="xyz", grid_class=CartesianGrid)

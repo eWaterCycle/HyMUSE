@@ -164,6 +164,18 @@ class BMIImplementation(object):
         grid_type.value=self._BMI.get_grid_type(grid_id)
         return 0
 
+    def get_grid_x(self, grid_id, index, grid_x):
+        grid_x.value=self._BMI.get_grid_x(grid_id)[index]
+        return 0
+
+    def get_grid_y(self, grid_id, index, grid_y):
+        grid_y.value=self._BMI.get_grid_y(grid_id)[index]
+        return 0
+
+    def get_grid_z(self, grid_id, index, grid_z):
+        grid_z.value=self._BMI.get_grid_z(grid_id)[index]
+        return 0
+
 # BMI uniform rectilinear
 
     def get_grid_shape(self,grid_id, dim, shape):
@@ -335,6 +347,8 @@ class BMIPythonInterface(PythonCodeInterface, BMIInterface):
 class BMI(InCodeComponentImplementation):
 
     ini_file=None
+    _axes_names="xyz"
+    _axes_unit=[units.none]*3
 
     #~ def __init__(self, **options):
         #~ InCodeComponentImplementation.__init__(self,BMIInterface(**options))
@@ -407,7 +421,22 @@ class BMI(InCodeComponentImplementation):
             'get_time_step',
             (),
             (self._time_unit,object.ERROR_CODE)
-        )        
+        )  
+        object.add_method(
+            'get_grid_x',
+            (object.INDEX, object.INDEX),
+            (self._axes_unit[0],object.ERROR_CODE)
+        )            
+        object.add_method(
+            'get_grid_y',
+            (object.INDEX, object.INDEX),
+            (self._axes_unit[1],object.ERROR_CODE)
+        )           
+        object.add_method(
+            'get_grid_z',
+            (object.INDEX, object.INDEX),
+            (self._axes_unit[2],object.ERROR_CODE)
+        )                             
         object.add_method(
             'update_until',
             (self._time_unit,),
@@ -484,8 +513,20 @@ class BMI(InCodeComponentImplementation):
                   
         grid_range_getter='get_'+name+'_range'
         setattr( self, grid_range_getter, func.__get__(self) )
-        object.define_grid(name,axes_names="xyz", grid_class=CartesianGrid)
+        object.define_grid(name,axes_names=self._axes_names, grid_class=CartesianGrid)
         object.set_grid_range(name,grid_range_getter)
+
+        def getter(self, *index):
+          x=self.get_grid_x(index[0])
+          if len(index)==1: return (x,)
+          y=self.get_grid_y(index[1])
+          if len(index)==2: return (x,y)
+          z=self.get_grid_z(index[2])
+          return (x,y,z)
+
+        grid_position_setter="set_"+name+"_position"
+        setattr( self, grid_position_setter, getter.__get__(self))
+        object.add_getter(name, grid_position_setter, names=self._axes_names)
 
     def define_properties(self, object):
         object.add_property('get_current_time', public_name = "model_time")

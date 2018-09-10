@@ -487,8 +487,7 @@ class BMI(InCodeComponentImplementation):
               shape=self.get_grid_shape(grid, range(self.get_grid_rank(grid)) )
               self.define_additional_cartesian_grid(object,grid, name, shape)
             else:
-              print self._grid_types[grid]
-              raise Exception("not implemented yet")
+              raise Exception("grid type {0} not implemented yet".format(self._grid_types[grid]))
 
             def setter_fac(flat_setter):                   
                 def f(self, *index_and_value):

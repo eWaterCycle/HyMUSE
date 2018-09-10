@@ -3,7 +3,10 @@
 import numpy
 import numpy as np
 from numpy import random
-import cPickle
+try:
+  import cPickle
+except:
+  import pickle
 
 def laplace(p, dx, dy):
     n1=p.shape[0]

@@ -351,7 +351,7 @@ class BMIPythonInterface(PythonCodeInterface, BMIInterface):
 
 class BMI(InCodeComponentImplementation):
 
-    _ini_file=None
+    _ini_file=""
     _axes_names="xyz"
     _axes_unit=[units.none]*3
 

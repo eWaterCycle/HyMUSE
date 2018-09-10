@@ -137,11 +137,13 @@ class BMIImplementation(object):
 # BMI getters and setters
 # atm handle only float 
 
-    def get_value_at_indices_float(self, var_name, index, value):
-        value.value=self._BMI.get_value_at_indices(var_name,[index])
+    def get_value_at_indices_float(self, var_name, index, value, N):
+        # add check that all var_name are the same?
+        value.value=self._BMI.get_value_at_indices(var_name[0],index)
         return 0
 
     def set_value_at_indices_float(self,var_name, index, value):
+        # add check that all var_name are the same?
         value.value=self._BMI.get_value_at_indices(var_name,[index])
         return 0
 
@@ -195,6 +197,9 @@ class BMIImplementation(object):
 class BMIInterface(CodeInterface):
     include_headers = ['worker_code.h']
 # base BMI functions
+
+    def commit_parameters(self, ini_file):
+        return self.initialize(ini_file)
 
     @remote_function
     def initialize(filename="s"):
@@ -285,11 +290,11 @@ class BMIInterface(CodeInterface):
 # BMI getters and setters
 # atm handle only float 
 
-    @remote_function(can_handle_array=True)    
+    @remote_function(must_handle_array=True)    
     def get_value_at_indices_float(var_name="s", index=0):
         returns (value=0.)
 
-    @remote_function(can_handle_array=True)    
+    @remote_function(must_handle_array=True)    
     def set_value_at_indices_float(var_name="s", index=0):
         returns (value=0.)
 
@@ -346,7 +351,7 @@ class BMIPythonInterface(PythonCodeInterface, BMIInterface):
 
 class BMI(InCodeComponentImplementation):
 
-    ini_file=None
+    _ini_file=None
     _axes_names="xyz"
     _axes_unit=[units.none]*3
 
@@ -354,7 +359,10 @@ class BMI(InCodeComponentImplementation):
         #~ InCodeComponentImplementation.__init__(self,BMIInterface(**options))
   
     def initialize_code(self):
-        self.initialize(self.ini_file)
+        pass
+  
+    def commit_parameters(self):
+        self.overridden().commit_parameters(self.parameters.ini_file)
 
         self._input_var_count=self.get_input_var_name_count()
         self._output_var_count=self.get_output_var_name_count()
@@ -391,25 +399,32 @@ class BMI(InCodeComponentImplementation):
         
     def define_state(self, object):
         object.set_initial_state('UNINITIALIZED')
-        object.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize')
-        object.add_method('INITIALIZED', 'before_get_parameter')
+        object.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize_code')
+        object.add_transition('INITIALIZED', 'COMMIT', 'commit_parameters')
+        object.add_method('!UNINITIALIZED', 'before_get_parameter')
         object.add_method('INITIALIZED', 'before_set_parameter')
-        object.add_method('END', 'before_get_parameter')
         object.add_transition('!UNINITIALIZED!STOPPED', 'END', 'cleanup_code')
         object.add_transition('END', 'STOPPED', 'stop', False)
         object.add_method('STOPPED', 'stop')
 
-        object.add_method('!UNINITIALIZED', 'get_current_time')
-        object.add_method('!UNINITIALIZED', 'get_time_step')
-        object.add_method('!UNINITIALIZED', 'evolve_model')
-        object.add_method('!UNINITIALIZED', 'finalize')
-        object.add_method('!UNINITIALIZED', 'data_store_names')
+        object.add_method('!UNINITIALIZED!INITIALIZED', 'get_current_time')
+        object.add_method('!UNINITIALIZED!INITIALIZED', 'get_time_step')
+        object.add_method('!UNINITIALIZED!INITIALIZED', 'evolve_model')
+        object.add_method('!UNINITIALIZED!INITIALIZED', 'finalize')
+        object.add_method('!UNINITIALIZED!INITIALIZED', 'before_get_data_store_names')
 
     def define_methods(self, object):
         pass
 
     def define_grids(self,object):
         pass
+    
+    def define_parameters(self,object):
+        object.add_interface_parameter(
+            "ini_file",
+            "configuration file with simulation setup",
+            self._ini_file
+        )        
     
     def define_additional_methods(self,object):
         object.add_method(
@@ -469,8 +484,8 @@ class BMI(InCodeComponentImplementation):
         for grid in self._grids:
             name="grid_"+str(grid)
             if self._grid_types[grid] in ["uniform_rectilinear_grid", "uniform_rectilinear"]:
-              shape=self.get_grid_shape(grid, range(self.get_grid_rank()) )
-              self.define_additional_cartesian_grid(object,name, shape)
+              shape=self.get_grid_shape(grid, range(self.get_grid_rank(grid)) )
+              self.define_additional_cartesian_grid(object,grid, name, shape)
             else:
               print self._grid_types[grid]
               raise Exception("not implemented yet")
@@ -491,7 +506,6 @@ class BMI(InCodeComponentImplementation):
 
             def getter_fac(flat_getter):
                 def f(self, *index):
-                    print flat_getter
                     flat_index=ravel_index(index,shape)
                     return getattr(self, flat_getter)(flat_index)
                 return f
@@ -503,7 +517,7 @@ class BMI(InCodeComponentImplementation):
                     setattr( self, getter, getter_fac(flat_getter).__get__(self) )
                     object.add_getter(name, getter, names=[var])
 
-    def define_additional_cartesian_grid(self, object, name, shape):
+    def define_additional_cartesian_grid(self, object, grid, name, shape):
         
         def func(self):
           r=()
@@ -517,11 +531,11 @@ class BMI(InCodeComponentImplementation):
         object.set_grid_range(name,grid_range_getter)
 
         def getter(self, *index):
-          x=self.get_grid_x(index[0])
+          x=self.get_grid_x(grid, index[0])
           if len(index)==1: return (x,)
-          y=self.get_grid_y(index[1])
+          y=self.get_grid_y(grid, index[1])
           if len(index)==2: return (x,y)
-          z=self.get_grid_z(index[2])
+          z=self.get_grid_z(grid, index[2])
           return (x,y,z)
 
         grid_position_setter="set_"+name+"_position"

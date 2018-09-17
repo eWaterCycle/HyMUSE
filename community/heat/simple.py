@@ -1,6 +1,6 @@
-from amuse.units import units
+from hymuse.units import units
 
-from interface import Heat
+from hymuse.community.heat.interface import Heat
   
 from matplotlib import pyplot  
 

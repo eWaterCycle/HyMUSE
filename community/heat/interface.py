@@ -3,7 +3,7 @@ from hymuse.units import units
 from hymuse.community.heat import BmiHeat as _BMI
 
 # bmi to land at hymuse.community.interface.bmi eventually? 
-hymuse.community.interface import bmi
+from hymuse.community.interface import bmi
 from hymuse.community.interface.bmi import BMIImplementation, BMIPythonInterface, BMI
 
 # override predefined unit dict

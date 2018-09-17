@@ -1,6 +1,6 @@
 from hymuse.units import units
 
-from hymuse.community.heat import BmiHeat as _BMI
+from heat import BmiHeat as _BMI
 
 # bmi to land at hymuse.community.interface.bmi eventually? 
 from hymuse.community.interface import bmi

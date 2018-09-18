@@ -1,15 +1,15 @@
 from hymuse.units import units
 
 from hymuse.community.heat.interface import Heat
+from hymuse.community.heat import interface 
   
 from matplotlib import pyplot  
 
 #~ import logging
 #~ logging.basicConfig(level=logging.DEBUG)
 #~ logging.getLogger("code").setLevel(logging.DEBUG)
-
-  
-h=Heat(channel_type="mpi")#redirection='none',channel_type="sockets", debugger="xterm")
+    
+h=Heat(redirection='none', mode="grpc")#,channel_type="sockets", debugger="xterm")
 
 pyplot.ion()
 f=pyplot.figure()
@@ -32,5 +32,6 @@ while tnow<tend:
     temp=h.grid_0.plate_surface__temperature
     pyplot.imshow(temp.value_in(units.K).T,origin='lower')
     pyplot.draw()
+    pyplot.pause(0.01)
 
 raw_input()

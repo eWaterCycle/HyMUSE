@@ -1,47 +1,33 @@
-from functools import partial
-
 from hymuse.units import units
-
-try:
-    from grpc4bmi.bmi_grpc_client import BmiClient
-    from grpc4bmi.bmi_client_subproc import BmiClientSubProcess
-    HAVE_GRPC4BMI=True
-except:
-    HAVE_GRPC4BMI=False
-    
 
 from hymuse.community.interface import bmi
 from hymuse.community.interface.bmi import BMIImplementation, BMIPythonInterface, BMI
 
-from heat import BmiHeat
+from heat import BmiHeat as _BMI
 
 # override predefined unit dict
 bmi.udunit_to_amuse={ "none":units.none, "s":units.s, "K":units.K, "-":units.none}
 
-_BMI=BmiHeat
-if HAVE_GRPC4BMI:
-    _BMI_GRPC=partial(BmiClientSubProcess, "hymuse.community.heat.heat.BmiHeat")
-
-class HeatImplementation(BMIImplementation):
+class Implementation(BMIImplementation):
     def __init__(self):
         self._BMI=_BMI()
 
-class HeatGRPCImplementation(BMIImplementation):
+class GRPCImplementation(BMIImplementation):
     def __init__(self):
-        self._BMI=_BMI_GRPC()
+        self._BMI=bmi.grpc_factory(_BMI)()
 
-class HeatInterface(BMIPythonInterface):
+class Interface(BMIPythonInterface):
     def __init__(self, **options):
-        mode=options.get("mode", "local")
-        if mode=="local":
-          implementation=HeatImplementation
+        mode=options.get("bmi_mode", "direct")
+        if mode=="direct":
+          implementation=Implementation
         elif mode=="grpc":
-          implementation=HeatGRPCImplementation
+          implementation=GRPCImplementation
         else:
           raise Exception("unknown")
         BMIPythonInterface.__init__(self, implementation,  **options)
 
 class Heat(BMI):
     def __init__(self, **options):
-        BMI.__init__(self,HeatInterface(**options))
+        BMI.__init__(self,Interface(**options))
   

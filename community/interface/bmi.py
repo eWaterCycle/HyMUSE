@@ -1,4 +1,5 @@
 import os.path
+from functools import partial
 
 from amuse.units import units
 
@@ -7,6 +8,18 @@ from amuse.datamodel import CartesianGrid
 from amuse.support.interface import InCodeComponentImplementation
 from amuse.rfi.core import  PythonCodeInterface, CodeInterface, legacy_function, \
                             LegacyFunctionSpecification, remote_function
+
+try:
+    from grpc4bmi.bmi_grpc_client import BmiClient
+    from grpc4bmi.bmi_client_subproc import BmiClientSubProcess
+    HAVE_GRPC4BMI=True
+except:
+    HAVE_GRPC4BMI=False
+
+def grpc_factory(_BMI):
+    if not HAVE_GRPC4BMI:
+        raise Exception("import of grpc4bmi failed - not installed?") 
+    return partial(BmiClientSubProcess, _BMI.__module__+"."+_BMI.__name__)
 
 # from hymuse.units.udunits import udunit_to_amuse ?
 # in practice it turns out that this converter dict needs tailoring to codes -> override in interface.py
@@ -167,15 +180,15 @@ class BMIImplementation(object):
         return 0
 
     def get_grid_x(self, grid_id, index, grid_x):
-        grid_x.value=self._BMI.get_grid_x(grid_id)[index]
+        grid_x.value=self._BMI.get_grid_x(grid_id)[int(index)]
         return 0
 
     def get_grid_y(self, grid_id, index, grid_y):
-        grid_y.value=self._BMI.get_grid_y(grid_id)[index]
+        grid_y.value=self._BMI.get_grid_y(grid_id)[int(index)]
         return 0
 
     def get_grid_z(self, grid_id, index, grid_z):
-        grid_z.value=self._BMI.get_grid_z(grid_id)[index]
+        grid_z.value=self._BMI.get_grid_z(grid_id)[int(index)]
         return 0
 
 # BMI uniform rectilinear

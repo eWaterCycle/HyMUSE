@@ -3,7 +3,7 @@
 AMUSE_DIR ?= ../../../..
 -include $(AMUSE_DIR)/config.mk
 
-MPIFC ?= mpif90
+CODE_GENERATOR = $(AMUSE_DIR)/build.py
 
 CODEDIR = pcrglobwb
 
@@ -23,11 +23,17 @@ endif
 
 .PHONY: download
 
-all: $(CODEDIR)
+all: $(CODEDIR) pcrglobwb_worker pcrglobwb_worker_grpc
 
 $(CODEDIR): PCR-GLOBWB_model
 	ln -s PCR-GLOBWB_model/model $(CODEDIR)
 	touch $(CODEDIR)/__init__.py
+
+pcrglobwb_worker: interface.py
+	$(CODE_GENERATOR) --type=py --mode=mpi -x hymuse.community.pcrglobwb.interface Interface Implementation -o $@
+
+pcrglobwb_worker_grpc: interface.py
+	$(CODE_GENERATOR) --type=py --mode=mpi -x hymuse.community.pcrglobwb.interface Interface GRPCImplementation -o $@
 
 ifdef DOWNLOAD_CODES
 PCR-GLOBWB_model: download
@@ -41,7 +47,7 @@ update: $(CODEDIR)
 	cd $(CODEDIR); git pull
 
 clean:
-	$(RM) -f *.pyc interface
+	$(RM) -f *.pyc pcrglobwb_worker pcrglobwb_worker_grpc
 	$(RM) -rf $(CODEDIR)
 
 distclean: clean

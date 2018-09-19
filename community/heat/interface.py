@@ -21,11 +21,13 @@ class Interface(BMIPythonInterface):
         mode=options.get("bmi_mode", "direct")
         if mode=="direct":
           implementation=Implementation
+          worker="heat_worker"
         elif mode=="grpc":
           implementation=GRPCImplementation
+          worker="heat_worker_grpc"
         else:
           raise Exception("unknown")
-        BMIPythonInterface.__init__(self, implementation,  **options)
+        BMIPythonInterface.__init__(self, implementation, worker, **options)
 
 class Heat(BMI):
     def __init__(self, **options):

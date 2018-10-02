@@ -57,7 +57,7 @@ class BMIImplementation(object):
 
 # base BMI functions
     def initialize(self, filename):
-        self._BMI.initialize(filename or None)
+        self._BMI.initialize(str(filename) or None)
         return 0
 
     def update(self):

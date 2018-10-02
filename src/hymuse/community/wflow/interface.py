@@ -5,10 +5,14 @@ from hymuse.community.interface.bmi import BMIImplementation, BMIPythonInterface
 
 from wflow.wflow_bmi import wflowbmi_csdms as _BMI
 
+# note the spaces and /timestep unit (not handled)
+# fix in code
 bmi.udunit_to_amuse={ "1" : units.none, "none":units.none, "s":units.s, "K":units.K, "-":units.none,
                   "m.day-1" : units.m/units.day, "m3": units.m**3, "m3.day-1" : units.m**3/units.day,
                   "m." : units.m, "m":units.m, "m3.s-1": units.m**3/units.s, "degrees Celcius": units.K,
-                  "undefined" : units.none, 'days since 1901-01-01' : units.day}
+                  "undefined" : units.none, 'days since 1901-01-01' : units.day, " mm": units.mm,
+                  " m^3/s" : units.m**3/units.s, " oC" : units.K, " m" : units.m, " mm/timestep" : units.mm/units.s,
+                  "m^3/s" : units.m**3/units.s, " -" : units.none}
 
 class Implementation(BMIImplementation):
     def __init__(self):

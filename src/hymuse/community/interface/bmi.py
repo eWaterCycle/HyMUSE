@@ -550,9 +550,9 @@ class BMI(InCodeComponentImplementation):
           z=self.get_grid_z(grid, index[2])
           return (x,y,z)
 
-        grid_position_setter="set_"+name+"_position"
-        setattr( self, grid_position_setter, getter.__get__(self))
-        object.add_getter(name, grid_position_setter, names=self._axes_names)
+        grid_position_getter="get_"+name+"_position"
+        setattr( self, grid_position_getter, getter.__get__(self))
+        object.add_getter(name, grid_position_getter, names=self._axes_names)
 
     def define_properties(self, object):
         object.add_property('get_current_time', public_name = "model_time")

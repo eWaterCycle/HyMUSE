@@ -23,16 +23,16 @@ endif
 
 .PHONY: download
 
-all: $(CODEDIR) pcrglobwb_worker pcrglobwb_worker_grpc
+all: pcrglobwb_worker pcrglobwb_worker_grpc pcrglobwb_worker_grpc_docker
 
 $(CODEDIR): PCR-GLOBWB_model
 	ln -s PCR-GLOBWB_model/model $(CODEDIR)
 	touch $(CODEDIR)/__init__.py
 
-pcrglobwb_worker: interface.py
+pcrglobwb_worker: $(CODEDIR) interface.py
 	$(CODE_GENERATOR) --type=py --mode=mpi -x hymuse.community.pcrglobwb.interface Interface Implementation -o $@
 
-pcrglobwb_worker_grpc: interface.py
+pcrglobwb_worker_grpc: $(CODEDIR) interface.py
 	$(CODE_GENERATOR) --type=py --mode=mpi -x hymuse.community.pcrglobwb.interface Interface GRPCImplementation -o $@
 
 pcrglobwb_worker_grpc_docker: interface.py
@@ -50,7 +50,7 @@ update: $(CODEDIR)
 	cd $(CODEDIR); git pull
 
 clean:
-	$(RM) -f *.pyc pcrglobwb_worker pcrglobwb_worker_grpc
+	$(RM) -f *.pyc pcrglobwb_worker pcrglobwb_worker_grpc pcrglobwb_worker_grpc_docker
 	$(RM) -rf $(CODEDIR)
 
 distclean: clean

@@ -51,7 +51,7 @@ clean:
 	$(RM) -rf $(CODEDIR)
 
 distclean: clean
-	$(RM) -rf wflow
+	$(RM) -rf $(CODEDIR)_repo
 
 download:
 	$(GIT_CLONE_CMD) $(GIT_REPO) $(CODEDIR)_repo

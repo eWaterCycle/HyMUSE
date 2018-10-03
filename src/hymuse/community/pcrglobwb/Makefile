@@ -35,6 +35,9 @@ pcrglobwb_worker: interface.py
 pcrglobwb_worker_grpc: interface.py
 	$(CODE_GENERATOR) --type=py --mode=mpi -x hymuse.community.pcrglobwb.interface Interface GRPCImplementation -o $@
 
+pcrglobwb_worker_grpc_docker: interface.py
+	$(CODE_GENERATOR) --type=py --mode=mpi -x hymuse.community.pcrglobwb.interface Interface Docker_GRPCImplementation -o $@
+
 ifdef DOWNLOAD_CODES
 PCR-GLOBWB_model: download
 else

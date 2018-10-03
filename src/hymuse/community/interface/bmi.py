@@ -12,6 +12,7 @@ from amuse.rfi.core import  PythonCodeInterface, CodeInterface, legacy_function,
 try:
     from grpc4bmi.bmi_grpc_client import BmiClient
     from grpc4bmi.bmi_client_subproc import BmiClientSubProcess
+    from grpc4bmi.bmi_client_docker import BmiClientDocker
     HAVE_GRPC4BMI=True
 except:
     HAVE_GRPC4BMI=False
@@ -20,6 +21,12 @@ def grpc_factory(_BMI):
     if not HAVE_GRPC4BMI:
         raise Exception("import of grpc4bmi failed - not installed?") 
     return partial(BmiClientSubProcess, _BMI.__module__+"."+_BMI.__name__)
+
+def docker_grpc_factory(_BMI):
+    if not HAVE_GRPC4BMI:
+        raise Exception("import of grpc4bmi failed - not installed?") 
+    return BmiClientDocker
+
 
 # from hymuse.units.udunits import udunit_to_amuse ?
 # in practice it turns out that this converter dict needs tailoring to codes -> override in interface.py

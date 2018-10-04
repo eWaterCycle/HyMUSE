@@ -30,6 +30,7 @@ class Interface(BMIPythonInterface):
         BMIPythonInterface.__init__(self, implementation, worker, **options)
 
 class Heat(BMI):
+    _axes_names="xy"
     def __init__(self, **options):
         BMI.__init__(self,Interface(**options))
   

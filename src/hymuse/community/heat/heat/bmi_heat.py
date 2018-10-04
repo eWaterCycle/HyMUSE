@@ -280,6 +280,17 @@ class BmiHeat(Bmi):
         """Origin of uniform rectilinear grid."""
         return self._model.origin
 
+    def get_grid_x(self, grid_id):
+        nx=self.get_grid_shape(grid_id)[0]
+        return self._model.origin[0]+np.arange(nx)*self._model.spacing[0]
+
+    def get_grid_y(self, grid_id):
+        ny=self.get_grid_shape(grid_id)[1]
+        return self._model.origin[0]+np.arange(ny)*self._model.spacing[1]
+
+    def get_grid_z(self, grid_id):
+        raise ValueError
+
     def get_grid_type(self, grid_id):
         """Type of grid."""
         return self._grid_type[grid_id]

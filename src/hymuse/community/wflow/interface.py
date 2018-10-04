@@ -3,7 +3,10 @@ from hymuse.units import units
 from hymuse.community.interface import bmi
 from hymuse.community.interface.bmi import BMIImplementation, BMIPythonInterface, BMI
 
-from wflow.wflow_bmi import wflowbmi_csdms as _BMI
+try:
+    from wflow.wflow_bmi import wflowbmi_csdms as _BMI
+except:
+    _BMI=None
 
 # note the spaces and /timestep unit (not handled)
 # fix in code
@@ -23,6 +26,10 @@ class GRPCImplementation(BMIImplementation):
     def __init__(self):
         self._BMI=bmi.grpc_factory(_BMI)()
 
+class Docker_GRPCImplementation(BMIImplementation):
+    def __init__(self):
+        self._BMI=bmi.docker_grpc_factory(_BMI)('ewatercycle/wflow-grpc4bmi:latest', input_dir="./input", output_dir="./output")
+
 class Interface(BMIPythonInterface):
     def __init__(self, **options):
         mode=options.get("bmi_mode", "direct")
@@ -32,6 +39,9 @@ class Interface(BMIPythonInterface):
         elif mode=="grpc":
           implementation=GRPCImplementation
           worker="wflow_worker_grpc"
+        elif mode in ["grpc+docker", "docker+grpc"]:
+          implementation=Docker_GRPCImplementation
+          worker="wflow_worker_grpc_docker"
         else:
           raise Exception("unknown")
         BMIPythonInterface.__init__(self, implementation, worker, **options)

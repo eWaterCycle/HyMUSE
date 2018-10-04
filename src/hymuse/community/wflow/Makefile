@@ -23,17 +23,20 @@ endif
 
 .PHONY: download
 
-all: $(CODEDIR) wflow_worker wflow_worker_grpc
+all: wflow_worker wflow_worker_grpc wflow_worker_grpc_docker
 
 $(CODEDIR): $(CODEDIR)_repo
 	ln -s $(CODEDIR)_repo/wflow-py/wflow $(CODEDIR)
 	touch $(CODEDIR)_repo/__init__.py
 
-wflow_worker: interface.py
+wflow_worker: $(CODEDIR) interface.py
 	$(CODE_GENERATOR) --type=py --mode=mpi -x hymuse.community.wflow.interface Interface Implementation -o $@
 
-wflow_worker_grpc: interface.py
+wflow_worker_grpc: $(CODEDIR) interface.py
 	$(CODE_GENERATOR) --type=py --mode=mpi -x hymuse.community.wflow.interface Interface GRPCImplementation -o $@
+
+wflow_worker_grpc_docker: interface.py
+	$(CODE_GENERATOR) --type=py --mode=mpi -x hymuse.community.wflow.interface Interface Docker_GRPCImplementation -o $@
 
 ifdef DOWNLOAD_CODES
 $(CODEDIR)_repo: download

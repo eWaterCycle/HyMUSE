@@ -23,7 +23,7 @@ class GRPCImplementation(BMIImplementation):
 
 class Docker_GRPCImplementation(BMIImplementation):
     def __init__(self):
-        self._BMI=bmi.docker_grpc_factory(_BMI)('ewatercycle/pcrg-grpc4bmi:latest', input_dir="./input", output_dir="./output")
+        self._BMI=bmi.docker_grpc_factory(_BMI)('ewatercycle/pcrg-grpc4bmi:latest', image_port=55555, input_dir="./input", output_dir="./output")
 
 class Interface(BMIPythonInterface):
     def __init__(self, **options):

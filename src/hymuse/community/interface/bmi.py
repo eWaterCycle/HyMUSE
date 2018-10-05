@@ -427,11 +427,11 @@ class BMI(InCodeComponentImplementation):
         object.add_transition('END', 'STOPPED', 'stop', False)
         object.add_method('STOPPED', 'stop')
 
-        object.add_method('!UNINITIALIZED!INITIALIZED', 'get_current_time')
-        object.add_method('!UNINITIALIZED!INITIALIZED', 'get_time_step')
-        object.add_method('!UNINITIALIZED!INITIALIZED', 'evolve_model')
-        object.add_method('!UNINITIALIZED!INITIALIZED', 'finalize')
-        object.add_method('!UNINITIALIZED!INITIALIZED', 'before_get_data_store_names')
+        object.add_method('COMMIT', 'get_current_time')
+        object.add_method('COMMIT', 'get_time_step')
+        object.add_method('COMMIT', 'evolve_model')
+        object.add_method('COMMIT', 'finalize')
+        object.add_method('COMMIT', 'before_get_data_store_names')
 
     def define_methods(self, object):
         pass

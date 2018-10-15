@@ -24,3 +24,9 @@ It needs a working AMUSE or AMUSE-framework installation. If the gRPC based inte
 ## Contributing ##
 
 Contributions are welcomed.
+
+## License ##
+
+Copyright (c) 2018, Netherlands eScience Center & Delft University of Technology
+
+Apache Software License 2.0

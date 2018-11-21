@@ -42,7 +42,7 @@ class Interface(BMIPythonInterface):
         BMIPythonInterface.__init__(self, implementation, worker, **options)
 
 class PCRGlobWB(BMI):
-    _axes_names=["lon","lat"]
+    _axes_names=["lat","lon"]
     _axes_unit=[units.deg, units.deg, units.none]
 
     def __init__(self, **options):

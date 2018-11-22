@@ -50,7 +50,7 @@ update: $(CODEDIR)
 	cd $(CODEDIR); git pull
 
 clean:
-	$(RM) -f *.pyc wflow_worker wflow_worker_grpc
+	$(RM) -f *.pyc wflow_worker*
 	$(RM) -rf $(CODEDIR)
 
 distclean: clean

@@ -50,7 +50,7 @@ update: $(CODEDIR)
 	cd $(CODEDIR); git pull
 
 clean:
-	$(RM) -f *.pyc pcrglobwb_worker pcrglobwb_worker_grpc pcrglobwb_worker_grpc_docker
+	$(RM) -f *.pyc pcrglobwb_worker*
 	$(RM) -rf $(CODEDIR)
 
 distclean: clean

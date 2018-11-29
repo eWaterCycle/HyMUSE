@@ -171,6 +171,12 @@ class CodeCommand(Command):
             pass
         else:
             self.environment['AMUSE_DIR'] = get_amuse_root_dir()
+
+            if self.inplace:
+               self.environment['MUSE_PACKAGE_DIR'] = os.path.abspath(os.getcwd())
+            else:
+               self.environment['MUSE_PACKAGE_DIR'] = os.path.abspath(self.build_temp)
+
         
     
     def set_fortran_variables(self):
@@ -369,10 +375,10 @@ class CodeCommand(Command):
         if not os.path.exists(self.build_temp):
             self.mkpath(self.build_temp)
 
-        configpath=os.path.abspath(os.getcwd())
-        self.copy_file(os.path.join(configpath,"config.mk"), self.build_temp) 
-        self.copy_file(os.path.join(configpath,"build.py"), self.build_temp) 
-        self.copy_tree(os.path.join(configpath,"support"), os.path.join(self.build_temp,"support") )
+        #~ configpath=os.path.abspath(os.getcwd())
+        #~ self.copy_file(os.path.join(configpath,"config.mk"), self.build_temp) 
+        #~ self.copy_file(os.path.join(configpath,"build.py"), self.build_temp) 
+        #~ self.copy_tree(os.path.join(configpath,"support"), os.path.join(self.build_temp,"support") )
         #~ self.copy_tree(os.path.join(configpath,"src"), os.path.join(self.build_temp,"src") )
         path=os.path.join(self.build_temp,"src")
         if not os.path.exists(path):
@@ -679,7 +685,7 @@ class BuildCodes(CodeCommand):
             output.write('\n')
         
         if not self.lib_dir == self.lib_src_dir:
-            #~ self.copy_build_prereq_to_build_dir()
+            self.copy_build_prereq_to_build_dir()
             self.copy_lib_to_build_dir()
             if sys.hexversion > 0x03000000:
                 run_2to3_on_build_dirs(self.makefile_paths(self.lib_src_dir), self.lib_dir,self.lib_src_dir)
@@ -935,7 +941,7 @@ class BuildLibraries(CodeCommand):
             output.write('\n')
         
         if not self.lib_dir == self.lib_src_dir:
-            #~ self.copy_build_prereq_to_build_dir()
+            self.copy_build_prereq_to_build_dir()
             self.copy_lib_to_build_dir()
             if sys.hexversion > 0x03000000:
                 run_2to3_on_build_dirs(self.makefile_paths(self.lib_src_dir), self.lib_dir,self.lib_src_dir)
@@ -1149,7 +1155,7 @@ class BuildOneCode(CodeCommand):
         results = []
         
         if not self.lib_dir == self.lib_src_dir:
-            #~ self.copy_build_prereq_to_build_dir()
+            self.copy_build_prereq_to_build_dir()
             self.copy_lib_to_build_dir()
             if sys.hexversion > 0x03000000:
                 run_2to3_on_build_dirs(self.makefile_paths(self.lib_src_dir), self.lib_dir,self.lib_src_dir)

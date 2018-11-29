@@ -23,7 +23,7 @@ endif
 
 .PHONY: download
 
-all: wflow_worker wflow_worker_grpc wflow_worker_grpc_docker
+all: wflow_worker_grpc_docker
 
 $(CODEDIR): $(CODEDIR)_repo
 	ln -s $(CODEDIR)_repo/wflow-py/wflow $(CODEDIR)

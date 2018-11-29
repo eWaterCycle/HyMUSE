@@ -23,7 +23,7 @@ endif
 
 .PHONY: download
 
-all: pcrglobwb_worker pcrglobwb_worker_grpc pcrglobwb_worker_grpc_docker
+all: pcrglobwb_worker_grpc_docker
 
 $(CODEDIR): PCR-GLOBWB_model
 	ln -s PCR-GLOBWB_model/model $(CODEDIR)

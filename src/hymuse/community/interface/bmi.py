@@ -3,7 +3,7 @@ from functools import partial
 
 from amuse.units import units
 
-from amuse.datamodel import CartesianGrid
+from amuse.datamodel import CartesianGrid, UnstructuredGrid
 
 from amuse.support.interface import InCodeComponentImplementation
 from amuse.rfi.core import  PythonCodeInterface, CodeInterface, legacy_function, \
@@ -505,6 +505,10 @@ class BMI(InCodeComponentImplementation):
             if self._grid_types[grid] in ["uniform_rectilinear_grid", "uniform_rectilinear"]:
               shape=self.get_grid_shape(grid, range(self.get_grid_rank(grid)) )
               self.define_additional_cartesian_grid(object,grid, name, shape)
+            elif self._grid_types[grid] in ["UNKNOWN"]:
+              size=self.get_grid_size(grid)
+              shape=(size,)
+              self.define_additional_unstructured_grid(object,grid, name, size)
             else:
               raise Exception("grid type {0} not implemented yet".format(self._grid_types[grid]))
 
@@ -534,6 +538,28 @@ class BMI(InCodeComponentImplementation):
                     flat_getter='get_'+var+'_flat'
                     setattr( self, getter, getter_fac(flat_getter).__get__(self) )
                     object.add_getter(name, getter, names=[var])
+
+    def define_additional_unstructured_grid(self, object, grid,name, size):
+
+        def func(self):
+          return (0,size-1)
+                  
+        grid_range_getter='get_'+name+'_range'
+        setattr( self, grid_range_getter, func.__get__(self) )
+        object.define_grid(name,axes_names=self._axes_names, grid_class=UnstructuredGrid)
+        object.set_grid_range(name,grid_range_getter)
+
+        def getter(self, *index):
+          x=self.get_grid_x(grid, index[0])
+          if len(self._axes_names)==1: return (x,)
+          y=self.get_grid_y(grid, index[0])
+          if len(self._axes_names)==2: return (x,y)
+          z=self.get_grid_z(grid, index[0])
+          return (x,y,z)
+
+        grid_position_getter="get_"+name+"_position"
+        setattr( self, grid_position_getter, getter.__get__(self))
+        object.add_getter(name, grid_position_getter, names=self._axes_names)
 
     def define_additional_cartesian_grid(self, object, grid, name, shape):
         

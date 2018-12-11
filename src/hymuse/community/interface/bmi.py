@@ -186,16 +186,16 @@ class BMIImplementation(object):
         grid_type.value=self._BMI.get_grid_type(grid_id)
         return 0
 
-    def get_grid_x(self, grid_id, index, grid_x):
-        grid_x.value=self._BMI.get_grid_x(grid_id)[int(index)]
+    def get_grid_x(self, grid_id, index, x, N):
+        x.value=self._BMI.get_grid_x(grid_id[0])[index] # no check on grid_id (should be array of eq. values)
         return 0
 
-    def get_grid_y(self, grid_id, index, grid_y):
-        grid_y.value=self._BMI.get_grid_y(grid_id)[int(index)]
+    def get_grid_y(self, grid_id, index, y, N):
+        y.value=self._BMI.get_grid_y(grid_id[0])[index]
         return 0
 
-    def get_grid_z(self, grid_id, index, grid_z):
-        grid_z.value=self._BMI.get_grid_z(grid_id)[int(index)]
+    def get_grid_z(self, grid_id, index, z, N):
+        z.value=self._BMI.get_grid_z(grid_id[0])[index]
         return 0
 
 # BMI uniform rectilinear
@@ -348,14 +348,14 @@ class BMIInterface(CodeInterface):
 
 # BMI rectilinear grid
 
-    @remote_function(can_handle_array=True)
-    def get_grid_x(self, grid_id=0, i=0):
+    @remote_function(must_handle_array=True)
+    def get_grid_x(grid_id=0, index=0):
         returns(x=0.)
-    @remote_function(can_handle_array=True)
-    def get_grid_y(self, grid_id=0, j=0):
+    @remote_function(must_handle_array=True)
+    def get_grid_y(grid_id=0, index=0):
         returns(y=0.)
-    @remote_function(can_handle_array=True)
-    def get_grid_z(self, grid_id=0, k=0):
+    @remote_function(must_handle_array=True)
+    def get_grid_z(grid_id=0, index=0):
         returns(z=0.)
 
     def cleanup_code(self):
@@ -574,17 +574,27 @@ class BMI(InCodeComponentImplementation):
         object.define_grid(name,axes_names=self._axes_names, grid_class=CartesianGrid)
         object.set_grid_range(name,grid_range_getter)
 
-        def getter(self, *index):
-          x=self.get_grid_x(grid, index[0])
-          if len(index)==1: return (x,)
-          y=self.get_grid_y(grid, index[1])
-          if len(index)==2: return (x,y)
-          z=self.get_grid_z(grid, index[2])
-          return (x,y,z)
-
-        grid_position_getter="get_"+name+"_position"
-        setattr( self, grid_position_getter, getter.__get__(self))
-        object.add_getter(name, grid_position_getter, names=self._axes_names)
+        if self._axes_names>=1:
+            def getter(self, *index):
+                x=self.get_grid_x(grid, index[0])
+                return x
+            grid_position_getter="get_"+name+"_x"
+            setattr( self, grid_position_getter, getter.__get__(self))
+            object.add_getter(name, grid_position_getter, names=[self._axes_names[0]])
+        if self._axes_names>=2:
+            def getter(self, *index):
+                x=self.get_grid_y(grid, index[1])
+                return x
+            grid_position_getter="get_"+name+"_y"
+            setattr( self, grid_position_getter, getter.__get__(self))
+            object.add_getter(name, grid_position_getter, names=[self._axes_names[1]])
+        if self._axes_names==3:
+            def getter(self, *index):
+                x=self.get_grid_z(grid, index[2])
+                return x
+            grid_position_getter="get_"+name+"_z"
+            setattr( self, grid_position_getter, getter.__get__(self))
+            object.add_getter(name, grid_position_getter, names=[self._axes_names[2]])
 
     def define_properties(self, object):
         object.add_property('get_current_time', public_name = "model_time")

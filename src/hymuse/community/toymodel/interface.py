@@ -14,7 +14,7 @@ bmi.udunit_to_amuse={ "1" : units.none, "none":units.none, "s":units.s, "K":unit
                   "m.day-1" : units.m/units.day, "m3": units.m**3, "m3.day-1" : units.m**3/units.day,
                   "m." : units.m, "m":units.m, "m3.s-1": units.m**3/units.s, "degrees Celcius": units.K,
                   "undefined" : units.none, 'days since 1901-01-01' : units.day, 'm2' : units.m**2,
-                  "mm/d" : 0.001*units.m/units.day, "m3/s" : units.m**3/units.s, "days" : units.day}
+                  "mm/d" : units.milli(units.m)/units.day, "m3/s" : units.m**3/units.s, "days" : units.day}
 
 class Implementation(BMIImplementation):
     def __init__(self):

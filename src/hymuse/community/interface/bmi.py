@@ -1,7 +1,7 @@
 import os.path
 from functools import partial
 
-from amuse.units import units
+from amuse.units import units, quantities
 
 from amuse.datamodel import CartesianGrid, UnstructuredGrid
 
@@ -133,8 +133,8 @@ class BMIImplementation(object):
         var_type.value=self._BMI.get_var_type(var_name)
         return 0
 
-    def get_var_units(self,var_name,var_unit):
-        var_unit.value=self._BMI.get_var_units(var_name) or "none"
+    def get_var_units(self, var_name, unit):
+        unit.value=self._BMI.get_var_units(var_name) or "none"
         return 0
 
     def get_var_itemsize(self,var_name,size):
@@ -162,9 +162,9 @@ class BMIImplementation(object):
         value.value=self._BMI.get_value_at_indices(var_name[0],index)
         return 0
 
-    def set_value_at_indices_float(self,var_name, index, value):
+    def set_value_at_indices_float(self,var_name, index, value, N):
         # add check that all var_name are the same?
-        value.value=self._BMI.get_value_at_indices(var_name,[index])
+        self._BMI.set_value_at_indices(var_name[0],index, value)
         return 0
 
 # BMI grid information
@@ -315,8 +315,8 @@ class BMIInterface(CodeInterface):
         returns (value=0.)
 
     @remote_function(must_handle_array=True)    
-    def set_value_at_indices_float(var_name="s", index=0):
-        returns (value=0.)
+    def set_value_at_indices_float(var_name="s", index=0, value=0.):
+        returns ()
 
 # BMI grid information functions
 
@@ -491,7 +491,7 @@ class BMI(InCodeComponentImplementation):
         def setter_fac(var):
             def f(self,index,val):
               unit=self._input_var_units[var]
-              val=val.value_in(unit)
+              val=quantities.to_quantity(val).value_in(unit)
 # todo: select data type              
               return self.set_value_at_indices_float(var,index,val)
             return f
@@ -514,7 +514,7 @@ class BMI(InCodeComponentImplementation):
 
             def setter_fac(flat_setter):                   
                 def f(self, *index_and_value):
-                    flat_index=ravel_index(index[:-1],shape)
+                    flat_index=ravel_index(index_and_value[:-1],shape)
                     value=index_and_value[-1]
                     return getattr(self, flat_setter)(flat_index,value)
                 return f

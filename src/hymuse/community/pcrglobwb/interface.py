@@ -1,16 +1,17 @@
 from hymuse.units import units
 
 from hymuse.community.interface import bmi
-from hymuse.community.interface.bmi import BMIImplementation, BMIPythonInterface, BMI
+from hymuse.community.interface.bmi import BMIImplementation, BMIPythonInterface, BMI, ravel_index
 
 try:
   from pcrglobwb.bmiPcrglobwb import BmiPCRGlobWB as _BMI
-except:
+except Exception as ex:
+  print ex
   _BMI=None
 
 bmi.udunit_to_amuse={ "1" : units.none, "none":units.none, "s":units.s, "K":units.K, "-":units.none,
                   "m.day-1" : units.m/units.day, "m3": units.m**3, "m3.day-1" : units.m**3/units.day,
-                  "m." : units.m, "m":units.m, "m3.s-1": units.m**3/units.s, "degrees Celcius": units.K,
+                  "m." : units.m, "m":units.m, "m3.s-1": units.m**3/units.s, "degrees Celcius": units.Celsius,
                   "undefined" : units.none, 'days since 1901-01-01' : units.day}
 
 class Implementation(BMIImplementation):
@@ -44,8 +45,49 @@ class Interface(BMIPythonInterface):
 class PCRGlobWB(BMI):
     _axes_names=["lat","lon"]
     _axes_unit=[units.deg, units.deg, units.none]
+    _forcings_var_names=["precipitation", "temperature"]
 
     def __init__(self, **options):
         self._ini_file=options.get("ini_file","")
         BMI.__init__(self, Interface(**options))
-  
+
+    def define_additional_grids(self,object):
+        BMI.define_additional_grids(self, object)
+        grid=0
+        name="forcings"#+str(grid)
+        if self._grid_types[grid] in ["uniform_rectilinear_grid", "uniform_rectilinear"]:
+          shape=self.get_grid_shape(grid, range(self.get_grid_rank(grid)) )
+          self.define_additional_cartesian_grid(object,grid, name, shape)
+        elif self._grid_types[grid] in ["UNKNOWN"]:
+          size=self.get_grid_size(grid)
+          shape=(size,)
+          self.define_additional_unstructured_grid(object,grid, name, size)
+        else:
+          raise Exception("grid type {0} not implemented yet".format(self._grid_types[grid]))
+
+        def setter_fac(flat_setter):                   
+            def f(self, *index_and_value):
+                flat_index=ravel_index(index_and_value[:-1],shape)
+                value=index_and_value[-1]
+                return getattr(self, flat_setter)(flat_index,value)
+            return f
+
+        for var in self._forcings_var_names:
+            if self.get_var_grid(var)==grid:
+                setter='set_'+var
+                flat_setter='set_'+var+'_flat'
+                setattr( self, setter, setter_fac(flat_setter).__get__(self) )
+                object.add_setter(name, setter, names=[var])
+
+        def getter_fac(flat_getter):
+            def f(self, *index):
+                flat_index=ravel_index(index,shape)
+                return getattr(self, flat_getter)(flat_index)
+            return f
+                
+        for var in self._forcings_var_names:
+            if self.get_var_grid(var)==grid:
+                getter='get_'+var
+                flat_getter='get_'+var+'_flat'
+                setattr( self, getter, getter_fac(flat_getter).__get__(self) )
+                object.add_getter(name, getter, names=[var])

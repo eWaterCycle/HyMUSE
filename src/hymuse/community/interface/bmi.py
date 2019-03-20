@@ -416,6 +416,9 @@ class BMI(InCodeComponentImplementation):
         self.define_additional_methods(handler)
         handler=self.get_handler("DATASETS")
         self.define_additional_grids(handler)
+        #~ handler=self.get_handler("PROPERTY")
+        #~ self.define_additional_properties(handler)
+
         
     def define_state(self, object):
         object.set_initial_state('UNINITIALIZED')
@@ -437,12 +440,16 @@ class BMI(InCodeComponentImplementation):
 
     def define_grids(self,object):
         pass
+
+    def configuration_file_set(self):
+        pass
     
     def define_parameters(self,object):
         object.add_interface_parameter(
             "ini_file",
             "configuration file with simulation setup",
-            self._ini_file
+            self._ini_file,
+            state_guard="configuration_file_set"
         )        
     
     def define_additional_methods(self,object):
@@ -597,6 +604,9 @@ class BMI(InCodeComponentImplementation):
             object.add_getter(name, grid_position_getter, names=[self._axes_names[2]])
 
     def define_properties(self, object):
+        #~ pass
+
+    #~ def define_additional_properties(self, object):
         object.add_property('get_current_time', public_name = "model_time")
         object.add_property('get_time_step', public_name = "time_step")
     

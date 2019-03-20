@@ -3,6 +3,8 @@ from hymuse.units import units
 from hymuse.community.interface import bmi
 from hymuse.community.interface.bmi import BMIImplementation, BMIPythonInterface, BMI, ravel_index
 
+from amuse.support.parameter_tools import CodeWithIniFileParameters
+
 try:
   from pcrglobwb.bmiPcrglobwb import BmiPCRGlobWB as _BMI
 except Exception as ex:
@@ -13,6 +15,11 @@ bmi.udunit_to_amuse={ "1" : units.none, "none":units.none, "s":units.s, "K":unit
                   "m.day-1" : units.m/units.day, "m3": units.m**3, "m3.day-1" : units.m**3/units.day,
                   "m." : units.m, "m":units.m, "m3.s-1": units.m**3/units.s, "degrees Celcius": units.Celsius,
                   "undefined" : units.none, 'days since 1901-01-01' : units.day}
+
+parameters=(
+    dict(name="use_interface_forcing", group_name="globalOptions", short="use_interface_forcing", dtype="bool", default=False, 
+          description="flag to use forcing from interface", ptype="ini"),
+)
 
 class Implementation(BMIImplementation):
     def __init__(self):
@@ -42,14 +49,21 @@ class Interface(BMIPythonInterface):
           raise Exception("unknown")
         BMIPythonInterface.__init__(self, implementation, worker, **options)
 
-class PCRGlobWB(BMI):
+class PCRGlobWB( BMI, CodeWithIniFileParameters):
     _axes_names=["lat","lon"]
     _axes_unit=[units.deg, units.deg, units.none]
     _forcings_var_names=["precipitation", "temperature"]
 
     def __init__(self, **options):
         self._ini_file=options.get("ini_file","")
+        CodeWithIniFileParameters.__init__(self, parameters)
         BMI.__init__(self, Interface(**options))
+        self.parameters.ini_file=self._ini_file
+
+    def configuration_file_set(self):
+        self.read_inifile_parameters(self.parameters.ini_file)
+        handler=self.get_handler('PARAMETER')
+        CodeWithIniFileParameters.define_parameters(self,handler)
 
     def define_additional_grids(self,object):
         BMI.define_additional_grids(self, object)

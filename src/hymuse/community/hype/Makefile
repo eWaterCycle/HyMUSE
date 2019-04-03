@@ -41,7 +41,7 @@ distclean: clean
 	rm -rf $(BUILDDIR) $(WORKER) hype-bmi
 
 $(WORKER): $(BUILDDIR) worker_code.cc worker_code.h interface.o
-	make -C $(BUILDDIR) CPPFLAGS="$(CPPFLAGS)" hypelib.o hype_bmi.o
+	make -C $(BUILDDIR) CPPFLAGS="$(CPPFLAGS)" hype hypelib.o hype_bmi.o
 	$(MPICXX) -I$(BUILDDIR) $(CXXFLAGS) $(LDFLAGS) $(BUILDDIR)/hype_bmi.o $(BUILDDIR)/hypelib.o $(shell find build/hypecode/ -name "*.o" ! -name "main.o") worker_code.cc interface.o  -o $@ $(BMILIBDIR) $(BMILIB) $(LIBS)
 
 worker_code.cc: interface.py

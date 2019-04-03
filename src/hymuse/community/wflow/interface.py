@@ -1,11 +1,12 @@
 from hymuse.units import units
 
 from hymuse.community.interface import bmi
-from hymuse.community.interface.bmi import BMIImplementation, BMIPythonInterface, BMI
+from hymuse.community.interface.bmi import BMIImplementation, BMIPythonInterface, BMI, BMI_WithIniFileParameters
 
 try:
     from wflow.wflow_bmi import wflowbmi_csdms as _BMI
-except:
+except Exception as ex:
+    print ex
     _BMI=None
 
 # note the spaces and /timestep unit (not handled)
@@ -46,11 +47,10 @@ class Interface(BMIPythonInterface):
           raise Exception("unknown")
         BMIPythonInterface.__init__(self, implementation, worker, **options)
 
-class Wflow(BMI):
+class Wflow(BMI_WithIniFileParameters):
     _axes_names=["lat","lon"]
     _axes_unit=[units.deg, units.deg, units.none]
 
     def __init__(self, **options):
-        self._ini_file=options.get("ini_file","")
-        BMI.__init__(self, Interface(**options))
+        BMI_WithIniFileParameters.__init__(self, Interface(**options), **options)
   

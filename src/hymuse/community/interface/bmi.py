@@ -6,6 +6,7 @@ from amuse.units import units, quantities
 from amuse.datamodel import CartesianGrid, UnstructuredGrid
 
 from amuse.support.interface import InCodeComponentImplementation
+from amuse.support.parameter_tools import CodeWithIniFileParameters
 from amuse.rfi.core import  PythonCodeInterface, CodeInterface, legacy_function, \
                             LegacyFunctionSpecification, remote_function
 
@@ -47,7 +48,7 @@ def ravel_index(pos, shape):
 def generate_c_interface_file(include_file, register_function_name):
     srcdir=os.path.dirname(os.path.abspath(__file__))
     
-    f=open(os.path.join(srcdir,"interface_bmi_template.c"),"r")
+    f=open(os.path.join(srcdir, "_bmi", "interface_bmi_template.c"),"r")
     filestring=f.read()
     f.close()
     
@@ -55,6 +56,20 @@ def generate_c_interface_file(include_file, register_function_name):
     filestring=filestring.replace("REGISTER_FUNCTION", register_function_name)
     
     f=open("interface.c","w")
+    f.write(filestring)
+    f.close()
+
+def generate_cpp_interface_file(include_file, bmi_class_name):
+    srcdir=os.path.dirname(os.path.abspath(__file__))
+    
+    f=open(os.path.join(srcdir, "_bmi", "interface_bmi_template.cc"),"r")
+    filestring=f.read()
+    f.close()
+    
+    filestring=filestring.replace("CODE_BMI_HEADER", include_file)
+    filestring=filestring.replace("BMI_CLASS", bmi_class_name)
+    
+    f=open("interface.cc","w")
     f.write(filestring)
     f.close()
 
@@ -516,8 +531,13 @@ class BMI(InCodeComponentImplementation):
               size=self.get_grid_size(grid)
               shape=(size,)
               self.define_additional_unstructured_grid(object,grid, name, size)
+            elif self._grid_types[grid] in ["unstructured"]:
+              size=self.get_grid_size(grid)
+              shape=(size,)
+              self.define_additional_unstructured_grid(object,grid, name, size)
             else:
               raise Exception("grid type {0} not implemented yet".format(self._grid_types[grid]))
+              
 
             def setter_fac(flat_setter):                   
                 def f(self, *index_and_value):
@@ -610,3 +630,14 @@ class BMI(InCodeComponentImplementation):
         object.add_property('get_current_time', public_name = "model_time")
         object.add_property('get_time_step', public_name = "time_step")
     
+class BMI_WithIniFileParameters( BMI,  CodeWithIniFileParameters):
+    def __init__(self, interface, **options):
+        self._ini_file=options.get("ini_file","")
+        CodeWithIniFileParameters.__init__(self, options.get("parameters", dict()) )
+        BMI.__init__(self, interface, **options)
+        self.parameters.ini_file=self._ini_file
+
+    def configuration_file_set(self):
+        self.read_inifile_parameters(self.parameters.ini_file)
+        handler=self.get_handler('PARAMETER')
+        CodeWithIniFileParameters.define_parameters(self,handler)

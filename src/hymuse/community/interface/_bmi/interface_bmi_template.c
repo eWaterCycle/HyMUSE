@@ -138,12 +138,12 @@ int get_var_grid(char * var_name, int * grid_id){
   return BMI_Get_var_grid(model, var_name, grid_id);
 }
 
-int get_value_at_indices_float(char * var_name, int index, double* value){
-  return BMI_Get_value_at_indices(model, var_name, value, &index,1);
+int get_value_at_indices_float(char ** var_name, int *index, double* value, int N){
+  return BMI_Get_value_at_indices(model, var_name[0], value, index,N);
 }
 
-int set_value_at_indices_float(char * var_name, int index, double* value){
-  return BMI_Set_value_at_indices(model, var_name, &index,1, value);
+int set_value_at_indices_float(char ** var_name, int *index, double* value, N){
+  return BMI_Set_value_at_indices(model, var_name[0], index,N, value);
 }
 
 int get_grid_rank(int grid_id, int *rank){

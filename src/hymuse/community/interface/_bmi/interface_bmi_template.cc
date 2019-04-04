@@ -185,26 +185,32 @@ extern "C" int get_grid_origin(int grid_id, int dim, double *o){
   return result;
 }
 
-extern "C" int get_grid_x(int grid_id, int i, double *x){
-  double *x_; // may need malloc?
+extern "C" int get_grid_x(int *grid_id, int *index, double *x, int N){
+  double *x_= (double*)malloc(sizeof(double)*N);; 
   int result;
-  result=model->get_grid_x( grid_id, x_);
-  if(result==BMI_SUCCESS) *x=x_[i];
+  result=model->get_grid_x( grid_id[0], x_);
+  if(result==BMI_SUCCESS) {
+    for(int i=0;i<N;i++) x[i]=x_[index[i]];
+  }
   return result;
 }
 
-extern "C" int get_grid_y(int grid_id, int i, double *x){
-  double *x_; // may need malloc?
+extern "C" int get_grid_y(int *grid_id, int *index, double *x, int N){
+  double *x_= (double*)malloc(sizeof(double)*N);; 
   int result;
-  result=model->get_grid_y( grid_id, x_);
-  if(result==BMI_SUCCESS) *x=x_[i];
+  result=model->get_grid_y( grid_id[0], x_);
+  if(result==BMI_SUCCESS) {
+    for(int i=0;i<N;i++) x[i]=x_[index[i]];
+  }
   return result;
 }
 
-extern "C" int get_grid_z(int grid_id, int i, double *x){
-  double *x_; // may need malloc?
+extern "C" int get_grid_z(int *grid_id, int *index, double *x, int N){
+  double *x_= (double*)malloc(sizeof(double)*N);; 
   int result;
-  result=model->get_grid_z( grid_id, x_);
-  if(result==BMI_SUCCESS) *x=x_[i];
+  result=model->get_grid_z( grid_id[0], x_);
+  if(result==BMI_SUCCESS) {
+    for(int i=0;i<N;i++) x[i]=x_[index[i]];
+  }
   return result;
 }

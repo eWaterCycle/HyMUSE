@@ -24,5 +24,7 @@ class HypeInterface(BMIInterface):
         BMIInterface.__init__(self, name_of_the_worker="bmi_hype_worker",  **options)
 
 class Hype(BMI):
+    _axes_names=["lon","lat"]
+    _axes_unit=[units.deg, units.deg, units.none]
     def __init__(self, **options):
         BMI.__init__(self,HypeInterface(**options))

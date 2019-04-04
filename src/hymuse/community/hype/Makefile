@@ -25,9 +25,6 @@ CPPFLAGS+=$(BMIINC)
 
 LIBS+=-lgfortran
 
-OBJS=$(subst .f90,.o, $(filter-out $(BUILDDIR)/hypecode/main.f90, $(wildcard $(BUILDDIR)/hypecode/*.f90)))
-
-
 all:  $(WORKER)
 
 .FORCE:
@@ -43,8 +40,11 @@ clean:
 distclean: clean
 	rm -rf $(BUILDDIR) $(WORKER) hype-bmi
 
-$(WORKER): $(BUILDDIR) worker_code.cc worker_code.h interface.o
+$(BUILDDIR)/hype_bmi.o: $(BUILDDIR)  
 	make -C $(BUILDDIR) CPPFLAGS="$(CPPFLAGS)" hype hypelib.o hype_bmi.o
+
+$(WORKER): OBJS=$(filter-out $(BUILDDIR)/hypecode/main.o, $(wildcard $(BUILDDIR)/hypecode/*.o))
+$(WORKER): $(BUILDDIR)/hype_bmi.o worker_code.cc worker_code.h interface.o
 	$(MPICXX) -I$(BUILDDIR) $(CXXFLAGS) $(LDFLAGS) $(BUILDDIR)/hype_bmi.o $(BUILDDIR)/hypelib.o $(OBJS) worker_code.cc interface.o  -o $@ $(BMILIBDIR) $(BMILIB) $(LIBS)
 
 worker_code.cc: interface.py

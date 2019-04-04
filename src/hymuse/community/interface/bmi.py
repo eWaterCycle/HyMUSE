@@ -601,21 +601,21 @@ class BMI(InCodeComponentImplementation):
         object.define_grid(name,axes_names=self._axes_names, grid_class=CartesianGrid)
         object.set_grid_range(name,grid_range_getter)
 
-        if self._axes_names>=1:
+        if len(self._axes_names)>=1:
             def getter(self, *index):
                 x=self.get_grid_x(grid, index[0])
                 return x
             grid_position_getter="get_"+name+"_x"
             setattr( self, grid_position_getter, getter.__get__(self))
             object.add_getter(name, grid_position_getter, names=[self._axes_names[0]])
-        if self._axes_names>=2:
+        if len(self._axes_names)>=2:
             def getter(self, *index):
                 x=self.get_grid_y(grid, index[1])
                 return x
             grid_position_getter="get_"+name+"_y"
             setattr( self, grid_position_getter, getter.__get__(self))
             object.add_getter(name, grid_position_getter, names=[self._axes_names[1]])
-        if self._axes_names==3:
+        if len(self._axes_names)==3:
             def getter(self, *index):
                 x=self.get_grid_z(grid, index[2])
                 return x

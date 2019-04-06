@@ -1,0 +1,127 @@
+!! ----------------------------------------------------------------------------							
+!!							
+!! World-Wide HYPE
+!!							
+!! -----------------------------------------------------------------------------							
+!! Check Indata during first runs (deactivate after first runs) 1) geodata/geoclass/par; 2) forcing data files
+!! Check indata 	1						
+!! Check indata 	2						
+!!
+!! -----------------------------------------------------------------------------							
+!!						
+!! Calculation settings:							
+!!							
+!! -----------------							
+bdate      	1961-01-01						
+cdate      	1962-01-01						
+edate      	1962-12-31						
+!! resultdir .\             !!Windows
+resultdir ./results/             !!Linux						
+instate	n						
+!! outstatedate	2012-12-31						
+readdaily 	y						
+submodel 	n						
+calibration	n						
+readobsid       y							
+soilstretch	y						
+!! Soilstretch enable the use of soilcorr parameters (strech soildepths in layer 2 and 3)							
+!! -----------------------------------------------------------------------------							
+!!							
+!! Enable/disable optional input files
+!!							
+!! -----------------							
+readsfobs	n						
+readswobs	n						
+readtminobs  	n						
+readtmaxobs	n						
+!! -----------------------------------------------------------------------------							
+!!							
+!! Define model options (optional)
+!!							
+!! -----------------							
+!!  snowfallmodel:							
+!!                  0 threshold temperature model							
+!!                  1 inputdata (SFobs.txt)							
+!!  snowmeltmodel:							
+!!                  0,1 temperature index             (with/without snowcover scaling)							
+!!                  2   temperature + radiation index (with/without snowcover scaling)							
+!!							
+!!  snowevapmodel   0 off							
+!!                  1 on							
+!!                   							
+!!  petmodel:  (potential evapotranspiration) (is shown in geodata for WWH)							
+!!                  0 original HYPE temperature model (with Xobs epot replacement)							
+!!                  1 original HYPE temperature model (without Xobs epot replacement)							
+!!                  2 Modified Jensen-Haise 							
+!!                  3 Modified Hargreaves-Samani							
+!!                  4 Priestly-Taylor							
+!!                  5 FAo Penman-Monteith							
+!!							
+!! lakeriverice:							
+!!                  0 off							
+!!                  1 on, old (simple) air-water heat exchange              (requires T2 water temperature model)							
+!!                  2 on, new heatbalance model for air-water heat exchange (requires T2 water temperature model)							
+!!							
+!! substance T2     switching on the new water temperature trace model							
+!!							
+!! deepground       0   off    Deep groundwater (Aquifer) model options							
+!!                  1,2 on
+!! Glacierini	0 off 1 on	(1 used for statefile preparation)	
+!! Floodplain		0, 1, 2, 3 (3 used for WWH)					
+!! -----------------							
+modeloption snowfallmodel	0						
+modeloption	snowmeltmodel	2					
+modeloption	snowevaporation	1					
+modeloption	petmodel	4					
+modeloption lakeriverice	2						
+substance	T2 						
+modeloption deepground	0 	
+modeloption glacierini	1
+modeloption floodmodel 2				
+!! ------------------------------------------------------------------------------------							
+!!							
+!! Define outputs
+!!							
+!! -----------------							
+!! meanperiod 1=daymean, 2=weekmean, 3=monthmean, 4=yearmean, 5=total period mean							
+!! output variables: see http://www.smhi.net/hype/wiki/doku.php?id=start:hype_file_reference:info.txt:variables 
+!! -----------------							
+!! BASIN outputs 
+!! The present basins are some large rivers distributed over different continents
+!! -----------------							
+basinoutput variable	cout rout						
+basinoutput meanperiod	3						
+basinoutput decimals	3						
+basinoutput allbasin     							
+!! -----------------							
+!! TIME outputs 
+!! -----------------							
+timeoutput variable	cout  				
+timeoutput decimals	3						
+timeoutput meanperiod	3						
+!! -----------------							
+!! MAP outputs
+!! -----------------							
+mapoutput variable	cout cprc ctmp
+mapoutput decimals	3						
+mapoutput meanperiod	5						
+!! ------------------------------------------------------------------------------------							
+!!							
+!! Select criteria for model evaluation and automatic calibration
+!!							
+!! -----------------							
+!! General settings
+!! -----------------			
+crit meanperiod	3						
+crit datalimit	3						
+!! -----------------			
+!! Criterion-specific settings
+!! -----------------							
+crit 1 criterion	MRE
+crit 1 cvariable	cout						
+crit 1 rvariable	rout						
+crit 1 weight	1
+crit 2 criterion	MR2
+crit 2 cvariable	cout						
+crit 2 rvariable	rout						
+crit 2 weight	0.25

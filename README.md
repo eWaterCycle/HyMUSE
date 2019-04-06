@@ -13,11 +13,11 @@ python setup.py install [--prefix install_dir ]
 
 ## Prerequisites ##
 
-It needs a working AMUSE or AMUSE-framework installation. If the gRPC based 
-interfaces are used, GRPC4BMI is needed. If thee interfaces are to be 
-approached natively, then the code prerequisites need to be installed. For 
-the interfacing the containerized interfaced, the Python docker module is 
-needed.  
+HyMUSE always needs a working AMUSE or AMUSE-framework installation. If the 
+gRPC based interfaces are used, GRPC4BMI is needed. If the interfaces are 
+to be approached natively, then the code prerequisites need to be 
+installed. For the interfacing the containerized interfaced, the Python 
+docker module is needed.  
 
 ## Current state ##
 

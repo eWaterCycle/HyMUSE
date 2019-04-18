@@ -4,6 +4,7 @@ import os
 from setuptools import setup, find_packages
 import support
 support.use("system")
+support.set_package_name("hymuse")
 from support.setup_codes import setup_commands
 
 name = 'hymuse'

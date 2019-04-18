@@ -61,4 +61,4 @@ hype-bmi:
 	$(MPICXX) $(CFLAGS) $(BMIINC) -c -o $@ $< 
 
 interface.cc:
-	python -c "import interface; interface.generate_interface_file()"
+	$(PYTHON) -c "import interface; interface.generate_interface_file()"

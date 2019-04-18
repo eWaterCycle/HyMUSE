@@ -50,7 +50,9 @@ all_data_files = []
 
 packages = find_packages('src')
 
-package_data = {}
+package_data = {
+    'hymuse.community.interface._bmi': ['*.template'],
+}
 
 mapping_from_command_name_to_command_class=setup_commands()
 

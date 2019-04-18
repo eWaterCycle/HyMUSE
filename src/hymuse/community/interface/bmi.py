@@ -48,7 +48,7 @@ def ravel_index(pos, shape):
 def generate_c_interface_file(include_file, register_function_name):
     srcdir=os.path.dirname(os.path.abspath(__file__))
     
-    f=open(os.path.join(srcdir, "_bmi", "interface_bmi_template.c"),"r")
+    f=open(os.path.join(srcdir, "_bmi", "interface_bmi_c.template"),"r")
     filestring=f.read()
     f.close()
     
@@ -62,7 +62,7 @@ def generate_c_interface_file(include_file, register_function_name):
 def generate_cpp_interface_file(include_file, bmi_class_name):
     srcdir=os.path.dirname(os.path.abspath(__file__))
     
-    f=open(os.path.join(srcdir, "_bmi", "interface_bmi_template.cc"),"r")
+    f=open(os.path.join(srcdir, "_bmi", "interface_bmi_cc.template"),"r")
     filestring=f.read()
     f.close()
     

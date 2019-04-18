@@ -34,10 +34,11 @@ $(BUILDDIR): hype-bmi
 	cp hype-bmi/src/*  $(BUILDDIR)
 
 clean:
-	rm -f *.pyc worker_code.cc worker_code.h interface.o interface.cc
+	rm -f *.pyc worker_code.cc worker_code.h interface.o interface.cc *.mod
 	make -C $(BUILDDIR) clean
 
-distclean: clean
+distclean: 
+	rm -f *.pyc worker_code.cc worker_code.h interface.o interface.cc *.mod
 	rm -rf $(BUILDDIR) $(WORKER) hype-bmi
 
 $(BUILDDIR)/hype_bmi.o: $(BUILDDIR)  

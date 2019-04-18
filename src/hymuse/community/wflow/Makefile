@@ -26,7 +26,7 @@ endif
 all: wflow_worker_grpc_docker
 
 $(CODEDIR): $(CODEDIR)_repo
-	ln -s $(CODEDIR)_repo/wflow-py/wflow $(CODEDIR)
+	ln -s $(CODEDIR)_repo/wflow $(CODEDIR)
 	touch $(CODEDIR)_repo/__init__.py
 
 wflow_worker: $(CODEDIR) interface.py

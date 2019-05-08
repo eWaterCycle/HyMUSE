@@ -2,9 +2,18 @@ from __future__ import print_function
 
 __revision__ = "$Id:$"
 
+import warnings
 import sys, os, re, subprocess
+import os.path
+import datetime
+import stat
 
 from . import supportrc
+
+try:
+    import numpy
+except ImportError:
+    warnings.warn( "numpy etc needed during build; operation may fail" )
 
 try:
     import ConfigParser as configparser
@@ -12,10 +21,6 @@ try:
 except ImportError:
     import configparser
     from io import StringIO
-
-import os.path
-import datetime
-import stat
 
 from stat import ST_MODE
 from distutils import sysconfig
@@ -304,8 +309,9 @@ class CodeCommand(Command):
         
         self.set_fortran_variables()
         
-        self.environment['F90'] = self.environment['FORTRAN']
-        self.environment['FC'] = self.environment['FORTRAN']
+        if 'FORTRAN' in self.environment:
+            self.environment['F90'] = self.environment['FORTRAN']
+            self.environment['FC'] = self.environment['FORTRAN']
         self.set_java_variables()
         self.set_openmp_flags()
         self.set_libdir_variables()
@@ -376,10 +382,11 @@ class CodeCommand(Command):
         except:
             pass
             
-            
-        compiler = fcompiler.new_fcompiler(requiref90=True)
-        fortran_executable = compiler.executables['compiler_f90'][0]
-        self.environment['FORTRAN'] = fortran_executable
+        
+        if fcompiler:    
+            compiler = fcompiler.new_fcompiler(requiref90=True)
+            fortran_executable = compiler.executables['compiler_f90'][0]
+            self.environment['FORTRAN'] = fortran_executable
     
     
     
@@ -531,7 +538,10 @@ class CodeCommand(Command):
 
     def copy_config_to_build_dir(self):
         configpath=os.path.abspath(os.getcwd())
-        topath=os.path.join(self.build_lib, "amuse")
+        if self.inplace:
+            topath=self.amuse_src_dir
+        else:
+            topath=os.path.join(self.build_lib, "amuse")
         self.copy_file(os.path.join(configpath,"config.mk"), topath) 
      
     def copy_build_prereq_to_build_dir(self):
@@ -959,10 +969,10 @@ class BuildCodes(CodeCommand):
                     build_to_special_targets.setdefault(shortname, list()).append(target_name)
                     self.announce("[{2:%H:%M:%S}] building {0} - {1}, succeeded".format(shortname, target_name, endtime), level =  log.DEBUG)
                 
+        if supportrc["framework_install"]:
+            self.copy_config_to_build_dir()
         
         if not self.codes_dir == self.codes_src_dir:
-            if supportrc["framework_install"]:
-                self.copy_config_to_build_dir()
             self.copy_worker_codes_to_build_dir()
             
         with open(buildlog, "a") as output:
@@ -979,7 +989,7 @@ class BuildCodes(CodeCommand):
             self.announce("%s\t%s" % (x , self.environment[x] ))
         
         if not self.is_mpi_enabled():
-            print(build_to_special_targets)
+            #~ print(build_to_special_targets)
             all_build = set(build)
             not_build_copy = []
             for x in not_build:
@@ -1083,8 +1093,10 @@ class ConfigureCodes(CodeCommand):
             return
         environment = self.build_environment()
         self.announce("Running configure for AMUSE", level = 2)
-        self.call(['./configure'], env=environment, shell=True)
+        result,content=self.call(['./configure'], env=environment, shell=True)
         if not os.path.exists('config.mk'):
+            self.announce("config.mk not generated; output of configure:", level=2)
+            self.announce(content, level=2)
             raise Exception("configure failed")
         with open("config.mk") as infile:
             self.announce("configure generated config.mk", level=2)

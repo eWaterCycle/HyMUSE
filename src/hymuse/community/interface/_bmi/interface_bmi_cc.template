@@ -188,12 +188,12 @@ extern "C" int get_grid_origin(int grid_id, int dim, double *o){
 extern "C" int get_grid_x(int *grid_id, int *index, double *x, int N){
   int result,n;
   double *x_; 
-  result=get_grid_shape(grid_id, 0, &n);
+  result=get_grid_shape(grid_id[0], 0, &n);
   
   if(result==BMI_SUCCESS) {
     x_= (double*)malloc(sizeof(double)*n);; 
     
-    result=BMI_Get_grid_x(model, grid_id[0], x_);
+    result=model->get_grid_x(grid_id[0], x_);
     if(result==BMI_SUCCESS) {
       for(int i=0;i<N;i++) x[i]=x_[index[i]];
     }
@@ -205,12 +205,12 @@ extern "C" int get_grid_x(int *grid_id, int *index, double *x, int N){
 extern "C" int get_grid_y(int *grid_id, int *index, double *x, int N){
   int result,n;
   double *x_; 
-  result=get_grid_shape(grid_id, 1, &n);
+  result=get_grid_shape( grid_id[0], 1, &n);
   
   if(result==BMI_SUCCESS) {
     x_= (double*)malloc(sizeof(double)*n);; 
     
-    result=BMI_Get_grid_y(model, grid_id[0], x_);
+    result=model->get_grid_y(grid_id[0], x_);
     if(result==BMI_SUCCESS) {
       for(int i=0;i<N;i++) x[i]=x_[index[i]];
     }
@@ -222,12 +222,12 @@ extern "C" int get_grid_y(int *grid_id, int *index, double *x, int N){
 extern "C" int get_grid_z(int *grid_id, int *index, double *x, int N){
   int result,n;
   double *x_; 
-  result=get_grid_shape(grid_id, 2, &n);
+  result=get_grid_shape(grid_id[0], 2, &n);
   
   if(result==BMI_SUCCESS) {
     x_= (double*)malloc(sizeof(double)*n);; 
     
-    result=BMI_Get_grid_z(model, grid_id[0], x_);
+    result=model->get_grid_z(grid_id[0], x_);
     if(result==BMI_SUCCESS) {
       for(int i=0;i<N;i++) x[i]=x_[index[i]];
     }

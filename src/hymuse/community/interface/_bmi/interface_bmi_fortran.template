@@ -1,0 +1,371 @@
+module bmi_model
+
+  use BMI_MODULE
+
+  type (BMI_TYPE) :: model
+
+end module
+
+function initialize(config_file) result(ret)
+  use bmi_model
+  integer :: ret
+  character(len=*), intent(in) :: config_file
+ 
+  ret=model%initialize(config_file)
+  
+end function
+
+function update() result(ret)
+  use bmi_model
+  integer :: ret
+ 
+  ret=model%update()
+  
+end function
+
+function update_until(t) result(ret)
+  use bmi_model
+  integer :: ret
+  double precision, intent(in) :: t
+ 
+  ret=model%update_until(t)
+  
+end function
+
+function update_frac(t) result(ret)
+  use bmi_model
+  integer :: ret
+  double precision, intent(in) :: t
+ 
+  ret=model%update_frac(t)
+  
+end function
+
+function finalize() result(ret)
+  use bmi_model
+  integer :: ret
+ 
+  ret=model%finalize(t)
+  
+end function
+
+function get_component_name(x) result(ret)
+  use bmi_model
+  integer :: ret
+  character(len=*), intent(out) :: x
+ 
+  ret=model%get_component_name(x)
+  
+end function
+
+function get_output_var_name_count(n) result(ret)
+  use bmi_model
+  integer :: ret
+  integer, intent(out) :: n
+ 
+  ret=model%get_output_var_name_count(n)
+  
+end function
+
+function get_output_var_name(i, x) result(ret)
+  use bmi_model
+  integer :: ret
+  integer, intent(in) :: 
+  character(len=*), intent(out) :: x
+  character(len=*), pointer :: names
+ 
+  ret=model%get_output_var_names(names)
+ 
+  if(ret.EQ.BMI_SUCCESS) then
+    x=names(i)  #offset?
+  endif
+  
+end function
+
+function get_input_var_name_count(n) result(ret)
+  use bmi_model
+  integer :: ret
+  integer, intent(out) :: n
+ 
+  ret=model%get_input_var_name_count(n)
+  
+end function
+
+function get_input_var_name(i, x) result(ret)
+  use bmi_model
+  integer :: ret
+  integer, intent(in) :: 
+  character(len=*), intent(out) :: x
+  character(len=*), pointer :: names
+ 
+  ret=model%get_input_var_names(names)
+ 
+  if(ret.EQ.BMI_SUCCESS) then
+    x=names(i)  #offset?
+  endif
+  
+end function
+
+function get_start_time(t) result(ret)
+  use bmi_model
+  integer :: ret
+  double precision, intent(out) :: t
+ 
+  ret=model%get_start_time(t)
+  
+end function
+
+function get_end_time(t) result(ret)
+  use bmi_model
+  integer :: ret
+  double precision, intent(out) :: t
+ 
+  ret=model%get_end_time(t)
+  
+end function
+
+function get_current_time(t) result(ret)
+  use bmi_model
+  integer :: ret
+  double precision, intent(out) :: t
+ 
+  ret=model%get_current_time(t)
+  
+end function
+
+function get_time_step(t) result(ret)
+  use bmi_model
+  integer :: ret
+  double precision, intent(out) :: t
+ 
+  ret=model%get_time_step(t)
+  
+end function
+
+function get_time_units(x) result(ret)
+  use bmi_model
+  integer :: ret
+  character(len=*), intent(out) :: x
+ 
+  ret=model%get_time_units(x)
+  
+end function
+
+function get_var_type(var, vartype) result(ret)
+  use bmi_model
+  integer :: ret
+  character(len=*), intent(in) :: var
+  character(len=*), intent(out) :: vartype
+ 
+  ret=model%get_var_type(var,vartype)
+  
+end function
+
+function get_var_units(var, varunit) result(ret)
+  use bmi_model
+  integer :: ret
+  character(len=*), intent(in) :: var
+  character(len=*), intent(out) :: varunit
+ 
+  ret=model%get_var_units(var,varunit)
+  
+end function
+
+function get_var_itemsize(var, x) result(ret)
+  use bmi_model
+  integer :: ret
+  character(len=*), intent(in) :: var
+  integer, intent(out) :: x
+ 
+  ret=model%get_itemsize(var,x)
+  
+end function
+
+function get_var_nbytes(var, x) result(ret)
+  use bmi_model
+  integer :: ret
+  character(len=*), intent(in) :: var
+  integer, intent(out) :: x
+ 
+  ret=model%get_nbytes(var,x)
+  
+end function
+
+function get_var_grid(var, x) result(ret)
+  use bmi_model
+  integer :: ret
+  character(len=*), intent(in) :: var
+  integer, intent(out) :: x
+ 
+  ret=model%get_grid(var,x)
+  
+end function
+
+function get_value_at_indices_float(var, indices, values, n) result(ret)
+  use bmi_model
+  integer :: ret,n
+  character(len=*), intent(in) :: var(n)
+  integer, intent(in) :: indices(n)
+  double precision, intent(out) :: values(n)
+ 
+  ret=model%get_value_at_indices_float(var(1),values,indices)
+  
+end function
+
+function set_value_at_indices_float(var, indices, values, n) result(ret)
+  use bmi_model
+  integer :: ret,n
+  character(len=*), intent(in) :: var(n)
+  integer, intent(in) :: indices(n)
+  double precision, intent(in) :: values(n)
+ 
+  ret=model%set_value_at_indices_float(var(1),indices,values)
+  
+end function
+
+function get_grid_rank(grid_id, rank) result(ret)
+  use bmi_model
+  integer :: ret
+  integer, intent(in) :: grid_id
+  integer, intent(out) :: rank
+ 
+  ret=model%get_grid_rank(grid_id,rank)
+  
+end function
+
+function get_grid_size(grid_id, grid_size) result(ret)
+  use bmi_model
+  integer :: ret
+  integer, intent(in) :: grid_id
+  integer, intent(out) :: grid_size
+ 
+  ret=model%get_grid_size(grid_id,grid_size)
+  
+end function
+
+function get_grid_type(grid_id, grid_type) result(ret)
+  use bmi_model
+  integer :: ret
+  integer, intent(in) :: grid_id
+  character(len=*), intent(out) :: grid_type
+ 
+  ret=model%get_grid_type(grid_id,grid_type)
+  
+end function
+
+function get_grid_shape(grid_id, griddim, grid_size) result(ret)
+  use bmi_model
+  integer :: ret
+  integer, intent(in) :: grid_id, griddim
+  integer, intent(out) :: grid_size
+  integer :: _size[8] ! yikes, hardcoded max dim
+ 
+  ret=model%get_grid_shape(grid_id,_size)
+  
+  if(ret.EQ.BMI_SUCCESS) then
+    grid_size=_size(griddim)
+  endif
+
+end function
+
+function get_grid_spacing(grid_id, griddim, grid_spacing) result(ret)
+  use bmi_model
+  integer :: ret
+  integer, intent(in) :: grid_id, griddim
+  double precision, intent(out) :: grid_spacing
+  double precision :: _spacing[8] ! yikes, hardcoded max dim
+ 
+  ret=model%get_grid_spacing(grid_id,_spacing)
+  
+  if(ret.EQ.BMI_SUCCESS) then
+    grid_spacing=_spacing(griddim)
+  endif
+
+end function
+
+function get_grid_origin(grid_id, griddim, grid_origin) result(ret)
+  use bmi_model
+  integer :: ret
+  integer, intent(in) :: grid_id, griddim
+  double precision, intent(out) :: grid_origin
+  double precision :: _origin[8] ! yikes, hardcoded max dim
+ 
+  ret=model%get_grid_origin(grid_id,_origin)
+  
+  if(ret.EQ.BMI_SUCCESS) then
+    grid_origin=_origin(griddim)
+  endif
+
+end function
+
+function get_grid_x(grid_id, indices, x, n) result(ret)
+  use bmi_model
+  integer :: ret,n, k
+  integer, intent(in) :: grid_id(n)
+  integer, intent(in) :: indices(n)
+  double precision, intent(out) :: x(n)
+  double_precision, allocatable :: _x(:)
+
+  ret=get_grid_shape(grid_id,1,k)
+
+  if(ret.EQ.BMI_SUCCESS) then
+    allocate(_x(k))
+
+    ret=model%get_grid_x(grid_id(1), _x)
+
+    if(ret.EQ.BMI_SUCCESS) then
+      x(1:n)=_x(indices(1:n))
+    endif
+    
+    deallocate(_x)
+  endif
+
+end function
+  
+function get_grid_y(grid_id, indices, x, n) result(ret)
+  use bmi_model
+  integer :: ret,n, k
+  integer, intent(in) :: grid_id(n)
+  integer, intent(in) :: indices(n)
+  double precision, intent(out) :: x(n)
+  double_precision, allocatable :: _x(:)
+
+  ret=get_grid_shape(grid_id,2,k)
+
+  if(ret.EQ.BMI_SUCCESS) then
+    allocate(_x(k))
+
+    ret=model%get_grid_y(grid_id(1), _x)
+
+    if(ret.EQ.BMI_SUCCESS) then
+      x(1:n)=_x(indices(1:n))
+    endif
+    
+    deallocate(_x)
+  endif
+
+end function
+
+function get_grid_z(grid_id, indices, x, n) result(ret)
+  use bmi_model
+  integer :: ret,n, k
+  integer, intent(in) :: grid_id(n)
+  integer, intent(in) :: indices(n)
+  double precision, intent(out) :: x(n)
+  double_precision, allocatable :: _x(:)
+
+  ret=get_grid_shape(grid_id,3,k)
+
+  if(ret.EQ.BMI_SUCCESS) then
+    allocate(_x(k))
+
+    ret=model%get_grid_z(grid_id(1), _x)
+
+    if(ret.EQ.BMI_SUCCESS) then
+      x(1:n)=_x(indices(1:n))
+    endif
+    
+    deallocate(_x)
+  endif
+
+end function

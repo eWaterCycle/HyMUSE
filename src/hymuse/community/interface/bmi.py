@@ -73,6 +73,21 @@ def generate_cpp_interface_file(include_file, bmi_class_name):
     f.write(filestring)
     f.close()
 
+def generate_fortran_interface_file(bmi_module, bmi_type):
+    srcdir=os.path.dirname(os.path.abspath(__file__))
+    
+    f=open(os.path.join(srcdir, "_bmi", "interface_bmi_fortran.template"),"r")
+    filestring=f.read()
+    f.close()
+    
+    filestring=filestring.replace("BMI_MODULE", bmi_module)
+    filestring=filestring.replace("BMI_TYPE", bmi_type)
+    
+    f=open("interface.f90","w")
+    f.write(filestring)
+    f.close()
+
+
 class BMIImplementation(object):
     def __init__(self):
         raise Exception("__init__ of BMIImplementation not implemented")
@@ -535,6 +550,10 @@ class BMI(InCodeComponentImplementation):
               size=self.get_grid_size(grid)
               shape=(size,)
               self.define_additional_unstructured_grid(object,grid, name, size)
+            elif self._grid_types[grid] in ["scalar"]: 
+              # for the moment zero dim/sized grid, should be param?
+              shape=(0,)
+              self.define_additional_cartesian_grid(object,grid, name, shape)
             else:
               raise Exception("grid type {0} not implemented yet".format(self._grid_types[grid]))
               
